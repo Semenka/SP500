@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__/
+*.pyc
+dashboard_update.log
+last_update_report.json
