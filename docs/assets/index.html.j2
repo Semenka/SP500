@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>S&P 500 — Intrinsic Value vs Market Price</title>
+<link rel="stylesheet" href="assets/dashboard.css" />
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+<header>
+  <h1>S&amp;P 500 — IV vs Market Price</h1>
+  <div class="meta">
+    <span class="badge">{{ session_label }}</span>
+    <span class="badge muted">Generated {{ generated_at_et }}</span>
+    <span class="badge muted">Overlay {{ assumptions.version }}</span>
+  </div>
+  <p class="narrative">{{ assumptions.narrative }}</p>
+</header>
+
+<section class="controls">
+  <div class="control">
+    <label>Base discount-rate premium
+      <span class="val" id="val-dr-prem"></span></label>
+    <input id="slider-dr-prem" type="range" min="-2" max="6" step="0.05" />
+    <small>default {{ '%.1f'|format(assumptions.base.discount_premium*100) }}%</small>
+  </div>
+  <div class="control">
+    <label>Base growth haircut
+      <span class="val" id="val-g-hair"></span></label>
+    <input id="slider-g-hair" type="range" min="-5" max="3" step="0.05" />
+    <small>default {{ '%.1f'|format(assumptions.base.growth_haircut*100) }}%</small>
+  </div>
+  <div class="control">
+    <label>Base margin-of-safety add
+      <span class="val" id="val-mos"></span></label>
+    <input id="slider-mos" type="range" min="-3" max="15" step="0.1" />
+    <small>default {{ '%.1f'|format(assumptions.base.mos_add*100) }}%</small>
+  </div>
+  <div class="control">
+    <label>Global growth shift (all tickers)
+      <span class="val" id="val-global-g"></span></label>
+    <input id="slider-global-g" type="range" min="-5" max="5" step="0.1" value="0" />
+    <small>±5% bias on revenue growth before DCF</small>
+  </div>
+  <button id="btn-reset">Reset to base case</button>
+</section>
+
+<section class="filters">
+  <label>Sector
+    <select id="filter-sector"><option value="All">All</option></select>
+  </label>
+  <label><input id="filter-brk" type="checkbox" /> BRK-held only</label>
+  <label>Search
+    <input id="filter-search" type="search" placeholder="ticker or company" />
+  </label>
+  <label>Min discount %
+    <input id="filter-min-disc" type="number" step="5" placeholder="-100" />
+  </label>
+  <span id="row-count" class="muted"></span>
+</section>
+
+<section class="viz">
+  <h2>Discount vs market cap</h2>
+  <div id="scatter" style="height:520px;"></div>
+</section>
+
+<section class="viz">
+  <h2>Companies (sorted by discount, highest first)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Company</th><th>Sector</th>
+          <th class="num">Price</th><th class="num">MCap $B</th>
+          <th class="num">IV $B</th><th class="num">Discount %</th>
+          <th>BRK?</th><th class="num">BRK $B</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="viz">
+  <h2>Discount over time</h2>
+  <div class="history-controls">
+    <label>Tickers (comma-separated)
+      <input id="history-tickers" type="text" placeholder="AAPL, BRK-B, OXY" />
+    </label>
+    <button id="btn-history">Plot</button>
+    <span id="history-status" class="muted"></span>
+  </div>
+  <div id="history" style="height:380px;"></div>
+</section>
+
+<footer>
+  <p>
+    Source: <a href="https://github.com/Semenka/SP500">github.com/Semenka/SP500</a> ·
+    Geopolitical overlay {{ assumptions.version }} ·
+    DCF: 15-yr owner-earnings + liquid assets, base discount {{ '%.1f'|format(assumptions.base.discount_rate*100) }}%, terminal {{ '%.1f'|format(assumptions.base.terminal_growth*100) }}%, MOS {{ '%.0f'|format(assumptions.base.margin_of_safety*100) }}%.
+  </p>
+</footer>
+
+<script>
+window.SP500_LATEST = {{ latest_json|safe }};
+window.SP500_ASSUMPTIONS = {{ assumptions_json|safe }};
+</script>
+<script src="assets/dashboard.js"></script>
+</body>
+</html>

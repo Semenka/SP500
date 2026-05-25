@@ -1,0 +1,130 @@
+{
+  "version": "v5 (May 22, 2026)",
+  "narrative": "Iran war ongoing since Feb 28; Brent $107\u2013112, WTI $102\u2013108; Hormuz mostly closed. Fed 3.50\u20133.75%, PCE 2.7% (sticky). S&P 500 ATH 7,501 (May 15), fwd P/E ~21x. BRK Q1 2026 13F: $263B portfolio, $397B cash, GOOGL tripled.",
+  "base": {
+    "discount_premium": 0.013,
+    "growth_haircut": -0.005,
+    "mos_add": 0.04,
+    "discount_rate": 0.1,
+    "terminal_growth": 0.025,
+    "projection_years": 15,
+    "margin_of_safety": 0.25
+  },
+  "sectors": {
+    "Energy": [
+      -0.025,
+      0.035,
+      -0.06
+    ],
+    "Oil & Gas": [
+      -0.025,
+      0.035,
+      -0.06
+    ],
+    "Aerospace & Defense": [
+      -0.012,
+      0.03,
+      -0.05
+    ],
+    "Insurance": [
+      -0.01,
+      0.015,
+      -0.02
+    ],
+    "Healthcare": [
+      0.003,
+      0.005,
+      0.0
+    ],
+    "Utilities": [
+      0.008,
+      0.005,
+      0.0
+    ],
+    "Consumer Staples": [
+      0.012,
+      -0.008,
+      0.025
+    ],
+    "Pharmaceuticals": [
+      0.003,
+      0.005,
+      0.0
+    ],
+    "Technology": [
+      0.015,
+      -0.015,
+      0.04
+    ],
+    "Semiconductors": [
+      0.02,
+      -0.015,
+      0.04
+    ],
+    "Software": [
+      0.01,
+      -0.01,
+      0.02
+    ],
+    "Financial Services": [
+      0.015,
+      -0.012,
+      0.035
+    ],
+    "Banks": [
+      0.02,
+      -0.015,
+      0.04
+    ],
+    "Real Estate": [
+      0.022,
+      -0.02,
+      0.05
+    ],
+    "Consumer Discretionary": [
+      0.025,
+      -0.025,
+      0.045
+    ],
+    "Retail": [
+      0.025,
+      -0.025,
+      0.045
+    ],
+    "Restaurants": [
+      0.02,
+      -0.02,
+      0.035
+    ],
+    "Automotive": [
+      0.03,
+      -0.035,
+      0.075
+    ],
+    "Industrial": [
+      0.02,
+      -0.02,
+      0.04
+    ],
+    "Industrials": [
+      0.02,
+      -0.02,
+      0.04
+    ],
+    "Materials": [
+      0.012,
+      -0.012,
+      0.025
+    ],
+    "Communication Services": [
+      0.005,
+      -0.005,
+      0.01
+    ],
+    "Transportation": [
+      0.028,
+      -0.028,
+      0.06
+    ]
+  }
+}
