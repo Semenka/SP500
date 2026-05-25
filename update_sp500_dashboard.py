@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-S&P 500 Dashboard Updater v3.0
+S&P 500 Dashboard Updater v5.0 — Iran War / Oil Shock Refresh (May 22, 2026)
 Fetches live financial data from Yahoo Finance and updates the Dashboard sheet in Portfolio.xlsx.
 Run manually via the "Update Data" button in the Dashboard sheet, or from terminal.
 
@@ -10,6 +10,31 @@ Features:
 - Detailed error log written to 'Errors' sheet
 - Data validation: sanity checks on prices, ratios, market caps
 - Buffett-style intrinsic value: 15-yr DCF with decaying growth + liquid assets + margin of safety
+- GEOPOLITICAL RISK OVERLAY v5 (May 22, 2026): IRAN WAR + OIL SHOCK INTENSIFIES
+  * Iran war ONGOING since Feb 28 (Op Epic Fury killed Khamenei). Brent SPIKED
+    to $107-112 (Apr 8 ceasefire holding but fragile, oil +45% since Feb).
+    WTI $102-108. Hormuz mostly closed by Iran, US blockading Iranian ports.
+    May 4 Project Freedom escort launched; May 6 paused; May 18 Trump called
+    off planned Tuesday strike; Pakistan mediating Iran's 14-point framework.
+  * Supreme Court ruled IEEPA tariff authority unconstitutional (Feb 2026).
+    Tariffs now ~10% (down from 11%), but other statutes preserve broad
+    presidential authority. ISM prices index 84.6 (highest since Apr 2022)
+    on tariff + energy double pressure.
+  * Fed 3.50-3.75% (held Apr 28-29, 8-4 vote with 4 dissents). PCE forecast
+    2.7% — sticky. Job creation near zero past year (unusual outside recession).
+    Markets price 1-2 cuts H2-26 but inflation fight constrains Fed.
+  * Recession risk: Goldman baseline still no recession (2.3-2.6% GDP), but
+    STAGFLATION re-emerging on oil shock + tariff persistence. ~28% WSJ.
+  * S&P 500: New ATH 7,501 (May 15 close, +0.8%). Forward P/E 20.9-21.2x.
+    Q1 blended earnings +15.1% (beat). 2026 EPS growth fcst 18.6%.
+  * BRK Q1 2026 13F (filed May 15): $263B portfolio, 29 positions (-13).
+    Cash $380-397B. 16 exits incl V/MA/UNH/DPZ/CHTR/HEI/LAMR/POOL/AON/ALLE/DEO.
+    CVX -35% (-46M sh, sold ~$8.4B). STZ -95%. GOOGL TRIPLED to $15.6B.
+    New positions: DAL ($2.6B), GOOG ($1B), Macy's ($55M). NYT tripled.
+    Cash war chest $397B (highest ever). $234M buybacks (first since May-24).
+  * Sector-specific: Energy/Defense/Insurance STRONG beneficiaries (Brent $112);
+    Transportation/Auto/Industrial HEAVILY hurt (fuel + tariffs); Tech mild
+    valuation premium; consumer pain RE-INTENSIFIED by oil + tariffs.
 - JSON summary report saved alongside for diagnostics
 
 Required: pip install yfinance openpyxl pandas
@@ -88,79 +113,175 @@ def log(msg):
         pass
 
 
-# ── Buffett-style intrinsic value (v3 — Owner Earnings model) ────────────────
+
+# ── Geopolitical risk overlay v5 (May 22, 2026) — IRAN WAR + OIL SHOCK ──────
+# Current macro environment:
+#   - Iran war ONGOING since Feb 28, 2026 (US/Israel Operation Epic Fury killed
+#     Supreme Leader Khamenei). Apr 8 ceasefire HOLDING but FRAGILE.
+#     Brent SPIKED to $107-112 (May 18-21); WTI $102-108. Oil up ~45% since
+#     Iran war began. Hormuz MOSTLY CLOSED by Iran; US blockading Iranian ports.
+#     May 4 Project Freedom escort op launched → paused May 6 → May 18 Trump
+#     called off planned Tuesday strike. Pakistan mediating Iran's 14-point
+#     framework. Iran reviewing US position May 21.
+#     Chubb (CB) lead underwriter for US Hormuz shipping insurance program.
+#   - Supreme Court ruled IEEPA tariff authority UNCONSTITUTIONAL (Feb 2026):
+#     overall tariffs ~10% (down from 11%), but other statutes preserve broad
+#     presidential authority — tariffs unlikely to disappear. ISM prices index
+#     84.6 (highest since Apr 2022) on tariff + energy DOUBLE pressure.
+#   - Fed: 3.50-3.75% held Apr 28-29 — 8-4 vote, 4 DISSENTS. PCE forecast 2.7%
+#     — sticky. Job creation near zero past year (unusual outside recession).
+#     Markets price 1-2 cuts H2-26 but inflation fight constrains Fed.
+#   - Recession risk: Goldman baseline still no recession (2.3-2.6% GDP), but
+#     STAGFLATION re-emerging on oil shock + tariff persistence. ~28% WSJ.
+#   - S&P 500: NEW ATH 7,501 close May 15 (+0.8%, intraday 7,517). Forward
+#     P/E ~20.9-21.2x. Q1 blended earnings +15.1% (beat). 2026 EPS growth
+#     forecast 18.6%. Nasdaq new record 26,635. AI semis driving.
+#   - BRK Q1 2026 13F (filed May 15): $263B portfolio, 29 positions (-13).
+#     Cash $380-397B (record). 16 exits incl V/MA/UNH/DPZ/CHTR/HEI/LAMR/POOL/
+#     AON/ALLE/DEO. CVX -35% sold ~$8.4B (84M sh / $17.5B). STZ -95% wiped.
+#     GOOGL TRIPLED to $15.6B (54M sh). New: DAL $2.6B, GOOG $1B, Macy's $55M.
+#     NYT tripled. LEN +43%. Op earnings $11.35B +18%. Insurance +28%.
+#     OXY unchanged at 264.94M sh ($17.22B at $65/sh, +58% YTD).
+#     SIRI +5M sh to 124.81M ($2.88B, 37% of SIRI outstanding).
+#
+# Sector impact matrix (discount rate premium / growth haircut):
+#   BENEFICIARIES: Energy ($112 Brent), Defense (war ongoing), Insurance (Hormuz)
+#   NEUTRAL:       Healthcare, Utilities, Consumer Staples
+#   HURT:          Transportation/Auto ($108 WTI), Industrials (supply chains)
+#                  Consumer Disc (oil + tariffs), Tech (valuation rich)
+
+SECTOR_GEO_ADJUSTMENTS = {
+    # sector_keyword: (discount_rate_premium, growth_haircut, margin_of_safety_add)
+    #
+    # v5 (May 22, 2026): Iran war ESCALATING again, Brent $112, WTI $108. Hormuz
+    # mostly CLOSED. Stagflation re-emerging. Supreme Court tariff ruling but
+    # tariffs persist. Energy benefit STRENGTHENED. Transportation/Auto pain
+    # WORSE (fuel cost shock). Insurance premium boosted (Chubb Hormuz lead).
+    # S&P still at ATH 7,501 but valuation premium warranted.
+    #
+    # STRONG Beneficiaries — bigger discount cut, growth boost
+    'Energy':                  (-0.025,  0.035, -0.06),   # Brent $112, war ongoing — STRONGEST tailwind
+    'Oil & Gas':               (-0.025,  0.035, -0.06),   # CVX/OXY: BRK still ~$35B combined exposure
+    'Aerospace & Defense':     (-0.012,  0.030, -0.05),   # Defense budgets accelerating; war ongoing
+    'Insurance':               (-0.010,  0.015, -0.02),   # CB Hormuz war premiums STRONG tailwind
+    # Neutral / Defensive
+    'Healthcare':              (0.003,   0.005, 0.00),    # UNH exited by BRK but defensive overall
+    'Utilities':               (0.008,   0.005, 0.00),    # Rate-sensitive; energy cost pass-through
+    'Consumer Staples':        (0.012,  -0.008, 0.025),   # Tariff + commodity input cost intensifying
+    'Pharmaceuticals':         (0.003,   0.005, 0.00),
+    # Mild Hurt — valuation-stretched / rate sensitive
+    'Technology':              (0.015,  -0.015, 0.040),   # Fwd P/E 21.2x rich; mixed AI tailwind
+    'Semiconductors':          (0.020,  -0.015, 0.040),   # AI demand strong but valuation peaks
+    'Software':                (0.010,  -0.010, 0.020),   # AI tailwind partly offsets
+    'Financial Services':      (0.015,  -0.012, 0.035),   # Stagflation concern, but credit OK
+    'Banks':                   (0.020,  -0.015, 0.040),   # BAC trimmed by BRK; rate uncertainty
+    'Real Estate':             (0.022,  -0.020, 0.050),   # Higher-for-longer + oil cost pressure
+    # SEVERELY Hurt — oil shock + tariffs
+    'Consumer Discretionary':  (0.025,  -0.025, 0.045),   # $112 Brent = $5.00+ gas, tariffs back
+    'Retail':                  (0.025,  -0.025, 0.045),   # Macy's added by BRK (cheap entry)
+    'Restaurants':             (0.020,  -0.020, 0.035),   # Input cost shock intensifying
+    'Automotive':              (0.030,  -0.035, 0.075),   # $108 WTI + tariffs + EV uncertainty
+    'Industrial':              (0.020,  -0.020, 0.040),   # Supply chain Hormuz disruption + tariffs
+    'Industrials':             (0.020,  -0.020, 0.040),
+    'Materials':               (0.012,  -0.012, 0.025),   # Mixed: commodity tailwind / input costs
+    'Communication Services':  (0.005,  -0.005, 0.010),   # Insulated; GOOGL tripled by BRK
+    'Transportation':          (0.028,  -0.028, 0.060),   # $108 WTI MASSIVE fuel headwind; DAL/airlines
+}
+
+# Base geopolitical risk premium applied to ALL companies
+# v5 (May 22): TIGHTENED vs v4 — oil shock ($112 Brent), Iran war escalating,
+# stagflation re-emerging, ISM prices at multi-year high. But S&P at fresh ATH.
+# Net: discount premium and MOS BUMPED to reflect oil/war reality.
+GEO_BASE_DISCOUNT_PREMIUM = 0.013   # +1.3% base discount (v4: 1.0%) — oil shock + stagflation re-emerging
+GEO_BASE_GROWTH_HAIRCUT = -0.005    # -0.5% growth haircut (v4: -0.3%) — tariff+oil double pressure
+GEO_BASE_MOS_ADD = 0.040            # +4.0% margin of safety (v4: 3.5%) — war ongoing + ATH valuations
+
+
+def get_geo_adjustments(industry):
+    """Look up sector-specific geopolitical adjustments from industry string."""
+    if not industry:
+        return (GEO_BASE_DISCOUNT_PREMIUM, GEO_BASE_GROWTH_HAIRCUT, GEO_BASE_MOS_ADD)
+    industry_lower = industry.lower()
+    for sector_key, adjustments in SECTOR_GEO_ADJUSTMENTS.items():
+        if sector_key.lower() in industry_lower:
+            dr_adj, g_adj, mos_adj = adjustments
+            return (
+                GEO_BASE_DISCOUNT_PREMIUM + dr_adj,
+                GEO_BASE_GROWTH_HAIRCUT + g_adj,
+                GEO_BASE_MOS_ADD + mos_adj,
+            )
+    return (GEO_BASE_DISCOUNT_PREMIUM, GEO_BASE_GROWTH_HAIRCUT, GEO_BASE_MOS_ADD)
+
+
+# ── Buffett-style intrinsic value (v4 — Geopolitical Risk-Adjusted) ──────────
 def buffett_intrinsic_value(fcf, growth_rate, liquid_assets=0,
                             discount_rate=0.10,
                             terminal_growth=0.025,
                             projection_years=15,
-                            margin_of_safety=0.25):
+                            margin_of_safety=0.25,
+                            industry=None):
     """
-    Conservative 15-year Owner Earnings DCF, thinking like Buffett:
+    Conservative 15-year Owner Earnings DCF with 2026 geopolitical overlay v5.
 
-    Philosophy:
-    - "Intrinsic value is the discounted value of the cash that can be taken
-      out of a business during its remaining life." — Warren Buffett
-    - We project FCF (owner earnings proxy) for 15 years
-    - Growth rate DECAYS conservatively toward nominal GDP (~2.5%) over time,
-      because competitive advantages erode and trees don't grow to the sky
-    - Add liquid assets (cash + short-term investments) on the balance sheet
-      — this is real value the owner can take out today
-    - Apply 25% margin of safety — only buy when price is well below value
+    Base model (Buffett philosophy):
+    - 15-year FCF projection with 3-phase growth decay
+    - Add liquid assets (cash + short-term investments)
+    - 25% base margin of safety
 
-    Parameters:
-    - fcf: current annual free cash flow ($)
-    - growth_rate: recent revenue growth (used as starting FCF growth, capped)
-    - liquid_assets: cash + cash equivalents + short-term investments ($)
-    - discount_rate: 10% (Buffett's minimum hurdle rate)
-    - terminal_growth: 2.5% perpetuity growth (≈ long-run nominal GDP)
-    - projection_years: 15 (longer horizon for durable businesses)
-    - margin_of_safety: 25% haircut on final value
-
-    Growth decay model:
-    - Year 1-5:   starting growth rate (capped at [-3%, +12%])
-    - Year 6-10:  linearly decays from starting rate toward terminal
-    - Year 11-15: at terminal growth rate (mature business)
-    - Terminal value: Gordon Growth Model at year 15
+    Geopolitical overlay v5 (May 22, 2026) — IRAN WAR + OIL SHOCK:
+    - Iran war ongoing since Feb 28 (Khamenei killed). Apr 8 ceasefire fragile.
+      Brent $107-112, WTI $102-108 (+45% since war began). Hormuz mostly closed.
+      Trump called off planned May 18 strike; Iran reviewing 14-pt framework.
+    - Supreme Court (Feb) ruled IEEPA tariffs unconstitutional → ~10% tariffs but
+      other statutes preserve broad presidential authority. ISM prices 84.6.
+    - Fed 3.50-3.75% (held with 4 dissents). PCE 2.7%. Stagflation re-emerging.
+    - S&P 500 ATH 7,501 (May 15). Fwd P/E ~21x. Earnings +15.1% Q1 beat.
+    - BRK Q1 2026 13F (5/15): $263B portfolio (-13 positions), cash $397B record.
+      16 exits, CVX -35%, STZ -95%, GOOGL TRIPLED, DAL/GOOG/M new positions.
+    - Sector-specific: Energy/Defense/Insurance STRONG benefit; Transportation/
+      Auto/Industrial heavy hurt from oil shock + tariffs; Tech mild valuation
+      haircut; Consumer pain RE-intensified.
     """
     if fcf is None or (isinstance(fcf, float) and pd.isna(fcf)) or fcf <= 0:
         return None
     if growth_rate is None or (isinstance(growth_rate, float) and pd.isna(growth_rate)):
-        growth_rate = 0.03  # conservative default
+        growth_rate = 0.03
     if liquid_assets is None or (isinstance(liquid_assets, float) and pd.isna(liquid_assets)):
         liquid_assets = 0
-    liquid_assets = max(liquid_assets, 0)  # ignore negative (net debt)
+    liquid_assets = max(liquid_assets, 0)
 
-    # Cap starting growth conservatively
-    g_start = min(max(growth_rate, -0.03), 0.12)
+    # Apply geopolitical adjustments
+    geo_dr, geo_g, geo_mos = get_geo_adjustments(industry)
+    adj_discount = discount_rate + geo_dr
+    adj_mos = margin_of_safety + geo_mos
+    growth_rate = growth_rate + geo_g
+
+    # Cap starting growth conservatively (wider band for crisis)
+    g_start = min(max(growth_rate, -0.05), 0.12)
     g_terminal = terminal_growth
 
     dcf_sum = 0.0
     projected_fcf = float(fcf)
 
     for yr in range(1, projection_years + 1):
-        # Determine growth rate for this year (3-phase decay)
         if yr <= 5:
             g = g_start
         elif yr <= 10:
-            # Linear decay from g_start to g_terminal over years 6-10
             fade = (yr - 5) / 5.0
             g = g_start * (1 - fade) + g_terminal * fade
         else:
             g = g_terminal
 
         projected_fcf *= (1 + g)
-        dcf_sum += projected_fcf / ((1 + discount_rate) ** yr)
+        dcf_sum += projected_fcf / ((1 + adj_discount) ** yr)
 
-    # Terminal value (Gordon Growth) at end of year 15
     terminal_fcf = projected_fcf * (1 + g_terminal)
-    terminal_value = terminal_fcf / (discount_rate - g_terminal)
-    terminal_pv = terminal_value / ((1 + discount_rate) ** projection_years)
+    terminal_value = terminal_fcf / (adj_discount - g_terminal)
+    terminal_pv = terminal_value / ((1 + adj_discount) ** projection_years)
 
-    # Enterprise value = PV of FCFs + PV of terminal + liquid assets today
     enterprise_value = dcf_sum + terminal_pv + liquid_assets
 
-    return enterprise_value * (1 - margin_of_safety)
-
+    return enterprise_value * (1 - adj_mos)
 
 # ── Fetch with retries ────────────────────────────────────────────────────────
 def fetch_single_ticker(ticker):
@@ -213,10 +334,14 @@ def fetch_single_ticker(ticker):
             cash = info.get('totalCash') or 0  # cash & cash equivalents
             # yfinance 'totalCash' includes cash + short-term investments
 
+            # Industry for geopolitical risk adjustment
+            industry = info.get('industry') or info.get('sector') or ''
+
             iv = buffett_intrinsic_value(
                 fcf,
                 rev_growth if rev_growth else 0.03,
                 liquid_assets=cash,
+                industry=industry,
             )
             iv_b = iv / 1e9 if iv else None
 
