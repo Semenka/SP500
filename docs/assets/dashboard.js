@@ -69,9 +69,41 @@
     return (dcfSum + terminalPv + cash) * (1 - adjMos);
   }
 
+  // Justified-P/B excess-return model for financials & REITs. Mirrors
+  // update_sp500_dashboard.financial_intrinsic_value(). Note: the global
+  // growth-shift slider does NOT apply here (Python has no such param for
+  // financials) — keep it that way to preserve parity.
+  function financialIV(t, sliders) {
+    const bvps = t.bvps;
+    const shares = t.shares_out;
+    const roe0 = t.roe;
+    if (bvps == null || shares == null || roe0 == null || isNaN(bvps) || isNaN(roe0)) return null;
+    const bookEquity = bvps * shares;
+    if (bookEquity <= 0) return null;
+
+    const sec = sectorAdj(t.sector_key);
+    const geoDr = sliders.baseDiscountPremium + sec[0];
+    const geoG = sliders.baseGrowthHaircut + sec[1];
+    const geoMos = sliders.baseMOSAdd + sec[2];
+
+    let r = A.base.discount_rate + geoDr;
+    let g = Math.max(A.base.terminal_growth + geoG, 0);
+    if (r - g < 0.02) r = g + 0.02;
+    const roe = Math.min(Math.max(roe0, -0.05), 0.30);
+    const adjMos = A.base.margin_of_safety + geoMos;
+
+    let fairPb = (roe - g) / (r - g);
+    fairPb = Math.min(Math.max(fairPb, 0.2), 4.0);
+    return fairPb * bookEquity * (1 - adjMos);
+  }
+
+  function computeIV(t, sliders) {
+    return t.valuation_method === 'pb' ? financialIV(t, sliders) : buffettIV(t, sliders);
+  }
+
   function recompute() {
     for (const t of tickers) {
-      const iv = buffettIV(t, state.sliders);
+      const iv = computeIV(t, state.sliders);
       t.iv_b_computed = iv != null ? iv / 1e9 : null;
       if (t.iv_b_computed != null && t.mcap_b && t.mcap_b > 0) {
         t.discount_computed = (t.iv_b_computed - t.mcap_b) / t.mcap_b;
@@ -153,11 +185,13 @@
       .map((d) => {
         const disc = d.discount_computed;
         const cls = disc == null ? '' : disc > 0 ? 'pos' : 'neg';
+        const method = d.valuation_method === 'pb' ? 'P/B' : 'DCF';
         return (
           '<tr>' +
           '<td><strong>' + (d.ticker || '') + '</strong></td>' +
           '<td>' + (d.company || '') + '</td>' +
           '<td>' + (d.sector_key || '') + '</td>' +
+          '<td class="method">' + method + '</td>' +
           '<td class="num">$' + fmt(d.price, 2) + '</td>' +
           '<td class="num">' + fmt(d.mcap_b) + '</td>' +
           '<td class="num">' + fmt(d.iv_b_computed) + '</td>' +
@@ -326,5 +360,5 @@
   });
 
   // Expose for the parity-check Node script.
-  window.SP500_DCF = { buffettIV };
+  window.SP500_DCF = { buffettIV, financialIV, computeIV };
 })();

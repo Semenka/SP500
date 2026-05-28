@@ -26,6 +26,8 @@ header h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; }
   padding: 3px 10px; border-radius: 999px; font-size: 12px;
 }
 .badge.muted { color: var(--muted); }
+.badge.cov { background: #14301c; border-color: #2ea043; color: #3fb950; }
+td.method { color: var(--muted); font-size: 12px; }
 .narrative { color: var(--muted); margin: 6px 0 0; font-size: 13px; max-width: 1100px; }
 
 section { padding: 18px 28px; }

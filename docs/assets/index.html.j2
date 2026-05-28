@@ -14,6 +14,10 @@
     <span class="badge">{{ session_label }}</span>
     <span class="badge muted">Generated {{ generated_at_et }}</span>
     <span class="badge muted">Overlay {{ assumptions.version }}</span>
+    {% if report and report.iv_coverage is defined %}
+    <span class="badge cov">IV coverage {{ '%.0f'|format(report.iv_coverage*100) }}%</span>
+    <span class="badge cov">Overlay coverage {{ '%.0f'|format(report.sector_coverage*100) }}%</span>
+    {% endif %}
   </div>
   <p class="narrative">{{ assumptions.narrative }}</p>
 </header>
@@ -71,7 +75,7 @@
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Company</th><th>Sector</th>
+          <th>Ticker</th><th>Company</th><th>Sector</th><th>Val</th>
           <th class="num">Price</th><th class="num">MCap $B</th>
           <th class="num">IV $B</th><th class="num">Discount %</th>
           <th>BRK?</th><th class="num">BRK $B</th>
