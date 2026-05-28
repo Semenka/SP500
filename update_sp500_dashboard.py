@@ -186,6 +186,12 @@ SECTOR_GEO_ADJUSTMENTS = {
     'Materials':               (0.012,  -0.012, 0.025),   # Mixed: commodity tailwind / input costs
     'Communication Services':  (0.005,  -0.005, 0.010),   # Insulated; GOOGL tripled by BRK
     'Transportation':          (0.028,  -0.028, 0.060),   # $108 WTI MASSIVE fuel headwind; DAL/airlines
+    # ── GICS broad-sector aliases (v6 fallback) ──────────────────────────────
+    # yfinance's granular `industry` (e.g. "Medical Devices") rarely matches the
+    # keys above, so match_sector_key() falls back to the 11 GICS `sector`
+    # values. These aliases ensure every S&P 500 name gets an overlay.
+    'Consumer Cyclical':       (0.025,  -0.025, 0.045),   # GICS alias → Consumer Discretionary
+    'Consumer Defensive':      (0.012,  -0.008, 0.025),   # GICS alias → Consumer Staples
 }
 
 # Base geopolitical risk premium applied to ALL companies
@@ -196,21 +202,52 @@ GEO_BASE_DISCOUNT_PREMIUM = 0.013   # +1.3% base discount (v4: 1.0%) — oil sho
 GEO_BASE_GROWTH_HAIRCUT = -0.005    # -0.5% growth haircut (v4: -0.3%) — tariff+oil double pressure
 GEO_BASE_MOS_ADD = 0.040            # +4.0% margin of safety (v4: 3.5%) — war ongoing + ATH valuations
 
+# Surfaced in the web dashboard header so users see which overlay generated the numbers.
+GEO_VERSION = "v5 (May 22, 2026)"
+GEO_NARRATIVE = (
+    "Iran war ongoing since Feb 28; Brent $107–112, WTI $102–108; "
+    "Hormuz mostly closed. Fed 3.50–3.75%, PCE 2.7% (sticky). "
+    "S&P 500 ATH 7,501 (May 15), fwd P/E ~21x. "
+    "BRK Q1 2026 13F: $263B portfolio, $397B cash, GOOGL tripled."
+)
 
-def get_geo_adjustments(industry):
-    """Look up sector-specific geopolitical adjustments from industry string."""
-    if not industry:
+# DCF defaults — kept here as module-level constants so the runner can export them
+# to assumptions.json and the JS recompute uses the identical numbers.
+DCF_DISCOUNT_RATE = 0.10
+DCF_TERMINAL_GROWTH = 0.025
+DCF_PROJECTION_YEARS = 15
+DCF_MARGIN_OF_SAFETY = 0.25
+
+
+def match_sector_key(industry, sector=None):
+    """Return the SECTOR_GEO_ADJUSTMENTS key matching this name, or None.
+
+    Tries the granular yfinance `industry` first (e.g. "Oil & Gas Integrated"),
+    then falls back to the broad GICS `sector` (e.g. "Healthcare"). The fallback
+    is what lifts overlay coverage from ~44% to ~100%: most S&P 500 industry
+    strings don't contain an overlay keyword, but every name has a GICS sector.
+    """
+    for candidate in (industry, sector):
+        if not candidate:
+            continue
+        cl = candidate.lower()
+        for sector_key in SECTOR_GEO_ADJUSTMENTS:
+            if sector_key.lower() in cl:
+                return sector_key
+    return None
+
+
+def get_geo_adjustments(industry, sector=None):
+    """Look up sector-specific geopolitical adjustments from industry/sector."""
+    sector_key = match_sector_key(industry, sector)
+    if sector_key is None:
         return (GEO_BASE_DISCOUNT_PREMIUM, GEO_BASE_GROWTH_HAIRCUT, GEO_BASE_MOS_ADD)
-    industry_lower = industry.lower()
-    for sector_key, adjustments in SECTOR_GEO_ADJUSTMENTS.items():
-        if sector_key.lower() in industry_lower:
-            dr_adj, g_adj, mos_adj = adjustments
-            return (
-                GEO_BASE_DISCOUNT_PREMIUM + dr_adj,
-                GEO_BASE_GROWTH_HAIRCUT + g_adj,
-                GEO_BASE_MOS_ADD + mos_adj,
-            )
-    return (GEO_BASE_DISCOUNT_PREMIUM, GEO_BASE_GROWTH_HAIRCUT, GEO_BASE_MOS_ADD)
+    dr_adj, g_adj, mos_adj = SECTOR_GEO_ADJUSTMENTS[sector_key]
+    return (
+        GEO_BASE_DISCOUNT_PREMIUM + dr_adj,
+        GEO_BASE_GROWTH_HAIRCUT + g_adj,
+        GEO_BASE_MOS_ADD + mos_adj,
+    )
 
 
 # ── Buffett-style intrinsic value (v4 — Geopolitical Risk-Adjusted) ──────────
@@ -219,7 +256,8 @@ def buffett_intrinsic_value(fcf, growth_rate, liquid_assets=0,
                             terminal_growth=0.025,
                             projection_years=15,
                             margin_of_safety=0.25,
-                            industry=None):
+                            industry=None,
+                            sector=None):
     """
     Conservative 15-year Owner Earnings DCF with 2026 geopolitical overlay v5.
 
@@ -251,7 +289,7 @@ def buffett_intrinsic_value(fcf, growth_rate, liquid_assets=0,
     liquid_assets = max(liquid_assets, 0)
 
     # Apply geopolitical adjustments
-    geo_dr, geo_g, geo_mos = get_geo_adjustments(industry)
+    geo_dr, geo_g, geo_mos = get_geo_adjustments(industry, sector)
     adj_discount = discount_rate + geo_dr
     adj_mos = margin_of_safety + geo_mos
     growth_rate = growth_rate + geo_g
@@ -282,6 +320,63 @@ def buffett_intrinsic_value(fcf, growth_rate, liquid_assets=0,
     enterprise_value = dcf_sum + terminal_pv + liquid_assets
 
     return enterprise_value * (1 - adj_mos)
+
+
+# ── Financials: FCF-DCF is meaningless for banks/insurers (float, leverage) ──
+# These keywords route a name to the justified-P/B excess-return model instead.
+FINANCIAL_KEYWORDS = (
+    'bank', 'insurance', 'capital markets', 'asset management', 'financial',
+    'credit services', 'stock exchanges', 'brokerage', 'mortgage',
+    'reit', 'real estate',
+)
+
+
+def is_financial(industry, sector=None):
+    """True if the name should use the book-value model rather than FCF-DCF."""
+    for candidate in (industry, sector):
+        if candidate and any(k in candidate.lower() for k in FINANCIAL_KEYWORDS):
+            return True
+    return False
+
+
+def financial_intrinsic_value(book_value_per_share, shares_out, roe,
+                              discount_rate=0.10,
+                              terminal_growth=0.025,
+                              margin_of_safety=0.25,
+                              industry=None,
+                              sector=None):
+    """Justified-P/B excess-return fair value for financials & REITs.
+
+    Fair P/B = (ROE − g) / (r − g), then fair equity = fair P/B × book equity.
+    This replaces FCF-DCF, which both (a) returns nothing for banks (no
+    meaningful FCF) and (b) wildly overvalues insurers (float inflates FCF —
+    e.g. PRU showed +440% under DCF). ROE and the P/B multiple are bounded to
+    keep outputs sane. Reuses the same geopolitical overlay for r and MOS so
+    the what-if sliders move financials too.
+    """
+    if book_value_per_share is None or shares_out is None or roe is None:
+        return None
+    if isinstance(book_value_per_share, float) and pd.isna(book_value_per_share):
+        return None
+    if isinstance(roe, float) and pd.isna(roe):
+        return None
+    book_equity = book_value_per_share * shares_out
+    if book_equity <= 0:
+        return None
+
+    geo_dr, geo_g, geo_mos = get_geo_adjustments(industry, sector)
+    r = discount_rate + geo_dr
+    g = max(terminal_growth + geo_g, 0.0)          # sliders nudge sustainable growth
+    if r - g < 0.02:                                # floor the spread to avoid blowups
+        r = g + 0.02
+    roe = min(max(roe, -0.05), 0.30)                # clamp distorted reported ROE
+    adj_mos = margin_of_safety + geo_mos
+
+    fair_pb = (roe - g) / (r - g)
+    fair_pb = min(max(fair_pb, 0.2), 4.0)           # sane P/B band
+    fair_equity = fair_pb * book_equity
+    return fair_equity * (1 - adj_mos)
+
 
 # ── Fetch with retries ────────────────────────────────────────────────────────
 def fetch_single_ticker(ticker):
@@ -334,15 +429,31 @@ def fetch_single_ticker(ticker):
             cash = info.get('totalCash') or 0  # cash & cash equivalents
             # yfinance 'totalCash' includes cash + short-term investments
 
-            # Industry for geopolitical risk adjustment
-            industry = info.get('industry') or info.get('sector') or ''
+            # Industry (granular) + GICS sector (broad fallback) for overlay
+            industry = info.get('industry') or ''
+            sector = info.get('sector') or ''
+            shares_out = info.get('sharesOutstanding')
 
-            iv = buffett_intrinsic_value(
-                fcf,
-                rev_growth if rev_growth else 0.03,
-                liquid_assets=cash,
-                industry=industry,
-            )
+            # Book-value inputs (financials valuation)
+            bvps = info.get('bookValue')          # book value PER SHARE
+            roe = info.get('returnOnEquity')
+
+            # Route financials/REITs to the P/B model; everyone else to FCF-DCF.
+            if is_financial(industry, sector):
+                valuation_method = 'pb'
+                iv = financial_intrinsic_value(
+                    bvps, shares_out, roe,
+                    industry=industry, sector=sector,
+                )
+            else:
+                valuation_method = 'dcf'
+                iv = buffett_intrinsic_value(
+                    fcf,
+                    rev_growth if rev_growth else 0.03,
+                    liquid_assets=cash,
+                    industry=industry,
+                    sector=sector,
+                )
             iv_b = iv / 1e9 if iv else None
 
             discount = None
@@ -360,6 +471,14 @@ def fetch_single_ticker(ticker):
                 'iv_b': iv_b,
                 'discount': discount,
                 'p_fcf': p_fcf,
+                'fcf': fcf,                                  # raw $ — needed by JS recompute
+                'cash': cash,                                # raw $ — needed by JS recompute
+                'shares_out': shares_out,                    # raw — needed by JS recompute
+                'industry': industry,                        # for sector matching in JS
+                'sector': sector,                            # GICS broad fallback
+                'bvps': bvps,                                # financials recompute
+                'roe': roe,                                  # financials recompute
+                'valuation_method': valuation_method,        # 'dcf' | 'pb'
             }, None
 
         except Exception as e:
@@ -367,7 +486,11 @@ def fetch_single_ticker(ticker):
             if attempt < MAX_RETRIES:
                 time.sleep(BASE_DELAY * (2 ** (attempt - 1)))
 
-    return {k: None for k in ['price','yr_change','mcap_b','rev_growth','gross_margin','pe','fcf_m','iv_b','discount','p_fcf']}, last_err
+    return {k: None for k in [
+        'price','yr_change','mcap_b','rev_growth','gross_margin','pe','fcf_m',
+        'iv_b','discount','p_fcf','fcf','cash','shares_out','industry',
+        'sector','bvps','roe','valuation_method'
+    ]}, last_err
 
 
 def fetch_batch(tickers):
@@ -420,11 +543,26 @@ def write_cell(ws, row, col, val, fmt, conditional, base_fill):
     cell.border = BORDER
 
 
+# ── Run-row collection (exposed to the dashboard runner) ─────────────────────
+# Populated during each update_dashboard() run with one entry per surviving
+# ticker. The web update agent reads this instead of re-opening Portfolio.xlsx.
+LAST_RUN_ROWS = []
+
+
+def get_last_run_rows():
+    return list(LAST_RUN_ROWS)
+
+
+def clear_last_run_rows():
+    LAST_RUN_ROWS.clear()
+
+
 # ── Main update ───────────────────────────────────────────────────────────────
 def update_dashboard():
     start_time = time.time()
     log("=" * 60)
     log("S&P 500 Dashboard update starting...")
+    clear_last_run_rows()
 
     if not os.path.exists(XLSX_PATH):
         log(f"ERROR: {XLSX_PATH} not found")
@@ -509,30 +647,60 @@ def update_dashboard():
             failed += 1
             no_data_tickers.append((row_num, ticker))
 
-    # ── Remove rows with zero data (no 1-year data available) ─────────────────
+        # Collect a row for the web update agent. Skip tickers that produced
+        # no data at all — they'll be deleted from the sheet below.
+        if filled > 0:
+            company = ws.cell(row=row_num, column=3).value
+            industry_col = ws.cell(row=row_num, column=4).value
+            brk_held = ws.cell(row=row_num, column=15).value   # column O
+            brk_pos_b = ws.cell(row=row_num, column=16).value  # column P
+            industry_str = d.get('industry') or industry_col or ''
+            sector_str = d.get('sector') or ''
+            LAST_RUN_ROWS.append({
+                'ticker': ticker,
+                'company': company,
+                'industry': industry_str,
+                'sector': sector_str,
+                'sector_key': match_sector_key(industry_str, sector_str),
+                'valuation_method': d.get('valuation_method'),
+                'price': d.get('price'),
+                'yr_change': d.get('yr_change'),
+                'mcap_b': d.get('mcap_b'),
+                'rev_growth': d.get('rev_growth'),
+                'gross_margin': d.get('gross_margin'),
+                'pe': d.get('pe'),
+                'fcf_m': d.get('fcf_m'),
+                'iv_b': d.get('iv_b'),
+                'discount': d.get('discount'),
+                'p_fcf': d.get('p_fcf'),
+                'fcf': d.get('fcf'),
+                'cash': d.get('cash'),
+                'shares_out': d.get('shares_out'),
+                'bvps': d.get('bvps'),
+                'roe': d.get('roe'),
+                'brk_held': brk_held if brk_held not in (None, '') else '—',
+                'brk_pos_b': brk_pos_b if isinstance(brk_pos_b, (int, float)) else None,
+            })
+
+    # ── No-data tickers: NON-DESTRUCTIVE (v6) ─────────────────────────────────
+    # Previously these rows were deleted from the sheet, which on a flaky-network
+    # run would permanently destroy the manual BRK columns O-S for that ticker.
+    # Now we keep the row: A-D (ticker/company/industry) and O-S (BRK) are
+    # untouched; E-N already show '—' from write_cell. A transient fetch failure
+    # is recoverable on the next run instead of silently shrinking the index.
+    no_data_count = len(no_data_tickers)
     if no_data_tickers:
-        log(f"Removing {len(no_data_tickers)} companies with no available data...")
-        # Delete rows from bottom to top to preserve row indices
-        for row_num, ticker in sorted(no_data_tickers, key=lambda x: x[0], reverse=True):
-            log(f"  Removing {ticker} (row {row_num}) — no data available")
-            ws.delete_rows(row_num, 1)
-        # Re-number remaining rows
-        r = DATA_START
-        idx = 1
-        while ws.cell(row=r, column=2).value:
-            ws.cell(row=r, column=1).value = idx
-            idx += 1
-            r += 1
-        log(f"  {len(no_data_tickers)} companies removed. {r - DATA_START} remaining.")
+        log(f"{no_data_count} companies returned no market data this run "
+            f"(rows + BRK columns PRESERVED, not deleted):")
+        for row_num, ticker in no_data_tickers:
+            log(f"  {ticker} (row {row_num}) — no data this run, kept")
 
     # Update timestamp in A2
     now = datetime.datetime.now()
     elapsed = time.time() - start_time
-    removed_count = len(no_data_tickers)
-    remaining = success + partial
     ws['A2'] = (
         f'Last updated: {now:%Y-%m-%d %H:%M:%S} | '
-        f'{success} full / {partial} partial / {removed_count} removed (no data) | '
+        f'{success} full / {partial} partial / {no_data_count} no-data (kept) | '
         f'{elapsed:.0f}s elapsed'
     )
     ws['A2'].font = Font(name='Arial', size=10, color='666666')
@@ -556,7 +724,7 @@ def update_dashboard():
         es.column_dimensions['B'].width = 60
         es.column_dimensions['C'].width = 20
 
-    # ── Update auto-filter after potential row removals ──────────────────────
+    # ── Update auto-filter to cover all data rows ────────────────────────────
     last_row = DATA_START
     while ws.cell(row=last_row, column=2).value:
         last_row += 1
@@ -566,6 +734,11 @@ def update_dashboard():
 
     wb.save(XLSX_PATH)
 
+    # ── Coverage stats for run-health logging ─────────────────────────────────
+    iv_count = sum(1 for r in LAST_RUN_ROWS if r.get('iv_b') is not None)
+    sector_count = sum(1 for r in LAST_RUN_ROWS if r.get('sector_key'))
+    n_rows = len(LAST_RUN_ROWS) or 1
+
     # ── JSON report ───────────────────────────────────────────────────────────
     report = {
         'timestamp': now.isoformat(),
@@ -573,9 +746,11 @@ def update_dashboard():
         'total_tickers': len(tickers),
         'success': success,
         'partial': partial,
-        'removed_no_data': removed_count,
+        'no_data_kept': no_data_count,
         'errors_count': len(all_errors),
-        'removed_tickers': [t for _, t in no_data_tickers],
+        'iv_coverage': round(iv_count / n_rows, 4),
+        'sector_coverage': round(sector_count / n_rows, 4),
+        'no_data_tickers': [t for _, t in no_data_tickers],
         'sample_errors': dict(list(all_errors.items())[:10]),
     }
     try:
@@ -584,7 +759,8 @@ def update_dashboard():
     except Exception:
         pass
 
-    log(f"Update complete: {success} full / {partial} partial / {removed_count} removed | {len(all_errors)} errors")
+    log(f"Update complete: {success} full / {partial} partial / {no_data_count} no-data (kept) | {len(all_errors)} errors")
+    log(f"Coverage: IV {100*iv_count//n_rows}% | sector overlay {100*sector_count//n_rows}%")
     log(f"Elapsed: {elapsed:.1f}s | Saved to {XLSX_PATH}")
     log("=" * 60)
 

@@ -4,6 +4,16 @@ A Buffett-style intrinsic value dashboard for all 494 S&P 500 companies, with a 
 
 The project lives as a single Excel workbook (`Portfolio.xlsx`) with a Python updater (`update_sp500_dashboard.py`) that refreshes prices, fundamentals, and IV columns on demand. The `.numbers` file is the macOS Numbers source; `.xlsx` is the format the scripts actually read and write.
 
+## Live dashboard
+
+An interactive web view of IV vs market-price discount is regenerated on every scheduled run and served from GitHub Pages out of the `docs/` folder. The page includes a scatter of discount vs market cap, a sortable/filterable table, a time-series chart, and sliders that let you re-tweak the base geopolitical assumptions (discount premium, growth haircut, MOS) in your browser and see every IV recompute live — no server required.
+
+To enable Pages: repo Settings → Pages → Source = `main` / `docs`.
+
+## Local update agent
+
+`scripts/run_update_agent.py` is the entry point invoked twice per US trading day (09:00 ET and 15:30 ET) by **OpenClaw**, the local update agent. It runs the existing yfinance refresh, exports JSON + history for the web dashboard, re-renders `docs/index.html`, and pushes the result to GitHub. See [scripts/openclaw_agent.md](scripts/openclaw_agent.md) for the runbook and CLI flags. The agent is market-day-aware (hardcoded NYSE holiday table through 2030) so OpenClaw can fire weekdays naively.
+
 ## What's in the workbook
 
 `Portfolio.xlsx` has 13 sheets. The two that matter for the dashboard:
