@@ -22,30 +22,63 @@
   <p class="narrative">{{ assumptions.narrative }}</p>
 </header>
 
+{% if assumptions.macro %}
+<section class="macro">
+  <div class="macro-head">
+    <h2>Macro lens — {{ assumptions.macro.as_of }}</h2>
+    <p class="regime">{{ assumptions.macro.regime }}</p>
+  </div>
+  <div class="macro-grid">
+    <div class="tile"><div class="lbl">Brent</div><div class="val">{{ assumptions.macro.brent_usd }}</div></div>
+    <div class="tile"><div class="lbl">WTI</div><div class="val">{{ assumptions.macro.wti_usd }}</div></div>
+    <div class="tile"><div class="lbl">Fed funds</div><div class="val">{{ assumptions.macro.fed_funds_pct }}</div></div>
+    <div class="tile"><div class="lbl">10-yr UST</div><div class="val">{{ assumptions.macro.ten_yr_treasury_pct }}</div></div>
+    <div class="tile"><div class="lbl">PCE YoY</div><div class="val">{{ assumptions.macro.pce_yoy_pct }}</div></div>
+    <div class="tile"><div class="lbl">ISM prices</div><div class="val">{{ assumptions.macro.ism_prices_idx }}</div></div>
+    <div class="tile"><div class="lbl">S&amp;P 500</div><div class="val">{{ assumptions.macro.sp500_level }}</div></div>
+    <div class="tile"><div class="lbl">Fwd P/E</div><div class="val">{{ assumptions.macro.sp500_fwd_pe }}x</div></div>
+    <div class="tile"><div class="lbl">Recession (WSJ)</div><div class="val">{{ assumptions.macro.recession_prob_wsj_pct }}%</div></div>
+    <div class="tile"><div class="lbl">BRK cash</div><div class="val">${{ assumptions.macro.brk_cash_b }}B</div></div>
+  </div>
+  <p class="geopolitics">{{ assumptions.macro.geopolitics }}</p>
+</section>
+{% endif %}
+
+{% set g = assumptions.slider_guidance or {} %}
+{% macro slider_help(key) %}{% set s = g[key] %}{% if s %}{{ s.what }}&#10;&#10;Raise when: {{ s.raise_when }}&#10;Lower when: {{ s.lower_when }}{% endif %}{% endmacro %}
+
 <section class="controls">
   <div class="control">
-    <label>Base discount-rate premium
+    <label title="{{ slider_help('discount_premium') }}">Base discount-rate premium
       <span class="val" id="val-dr-prem"></span></label>
-    <input id="slider-dr-prem" type="range" min="-2" max="6" step="0.05" />
+    <input id="slider-dr-prem" type="range" min="-2" max="6" step="0.05"
+           title="{{ slider_help('discount_premium') }}" />
     <small>default {{ '%.1f'|format(assumptions.base.discount_premium*100) }}%</small>
+    {% if g.discount_premium %}<small class="lyn">📊 {{ g.discount_premium.today }}</small>{% endif %}
   </div>
   <div class="control">
-    <label>Base growth haircut
+    <label title="{{ slider_help('growth_haircut') }}">Base growth haircut
       <span class="val" id="val-g-hair"></span></label>
-    <input id="slider-g-hair" type="range" min="-5" max="3" step="0.05" />
+    <input id="slider-g-hair" type="range" min="-5" max="3" step="0.05"
+           title="{{ slider_help('growth_haircut') }}" />
     <small>default {{ '%.1f'|format(assumptions.base.growth_haircut*100) }}%</small>
+    {% if g.growth_haircut %}<small class="lyn">📊 {{ g.growth_haircut.today }}</small>{% endif %}
   </div>
   <div class="control">
-    <label>Base margin-of-safety add
+    <label title="{{ slider_help('mos_add') }}">Base margin-of-safety add
       <span class="val" id="val-mos"></span></label>
-    <input id="slider-mos" type="range" min="-3" max="15" step="0.1" />
+    <input id="slider-mos" type="range" min="-3" max="15" step="0.1"
+           title="{{ slider_help('mos_add') }}" />
     <small>default {{ '%.1f'|format(assumptions.base.mos_add*100) }}%</small>
+    {% if g.mos_add %}<small class="lyn">📊 {{ g.mos_add.today }}</small>{% endif %}
   </div>
   <div class="control">
-    <label>Global growth shift (all tickers)
+    <label title="{{ slider_help('global_growth_shift') }}">Global growth shift (all tickers)
       <span class="val" id="val-global-g"></span></label>
-    <input id="slider-global-g" type="range" min="-5" max="5" step="0.1" value="0" />
+    <input id="slider-global-g" type="range" min="-5" max="5" step="0.1" value="0"
+           title="{{ slider_help('global_growth_shift') }}" />
     <small>±5% bias on revenue growth before DCF</small>
+    {% if g.global_growth_shift %}<small class="lyn">📊 {{ g.global_growth_shift.today }}</small>{% endif %}
   </div>
   <button id="btn-reset">Reset to base case</button>
 </section>
@@ -97,6 +130,65 @@
   </div>
   <div id="history" style="height:380px;"></div>
 </section>
+
+<details class="advanced">
+  <summary>Advanced: DCF base inputs &amp; sector overlay matrix</summary>
+
+  <h3>DCF base inputs</h3>
+  <table class="inputs">
+    <thead><tr><th>Input</th><th class="num">Value</th><th>What it is &amp; when to change it</th></tr></thead>
+    <tbody>
+      <tr><td>Discount rate (cost of equity)</td><td class="num">{{ '%.1f'|format(assumptions.base.discount_rate*100) }}%</td><td>{{ assumptions.dcf_input_notes.discount_rate if assumptions.dcf_input_notes }}</td></tr>
+      <tr><td>Terminal growth</td><td class="num">{{ '%.1f'|format(assumptions.base.terminal_growth*100) }}%</td><td>{{ assumptions.dcf_input_notes.terminal_growth if assumptions.dcf_input_notes }}</td></tr>
+      <tr><td>Projection horizon</td><td class="num">{{ assumptions.base.projection_years }} yr</td><td>{{ assumptions.dcf_input_notes.projection_years if assumptions.dcf_input_notes }}</td></tr>
+      <tr><td>Margin of safety (base)</td><td class="num">{{ '%.0f'|format(assumptions.base.margin_of_safety*100) }}%</td><td>{{ assumptions.dcf_input_notes.margin_of_safety if assumptions.dcf_input_notes }}</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Geopolitical overlay — current base layer (before sector deltas)</h3>
+  <table class="inputs">
+    <thead><tr><th>Slider</th><th class="num">Default</th><th>What it does &amp; today's read</th></tr></thead>
+    <tbody>
+      {% for key, label in [
+        ('discount_premium','Discount-rate premium'),
+        ('growth_haircut','Growth haircut'),
+        ('mos_add','MOS add'),
+        ('global_growth_shift','Global growth shift'),
+      ] %}
+        {% set s = (assumptions.slider_guidance or {}).get(key) %}
+        {% if s %}
+        <tr>
+          <td>{{ label }}</td>
+          <td class="num">
+            {% if key == 'discount_premium' %}{{ '%+.2f'|format(assumptions.base.discount_premium*100) }}%
+            {% elif key == 'growth_haircut' %}{{ '%+.2f'|format(assumptions.base.growth_haircut*100) }}%
+            {% elif key == 'mos_add' %}{{ '%+.2f'|format(assumptions.base.mos_add*100) }}%
+            {% else %}0.00%
+            {% endif %}
+          </td>
+          <td><strong>What:</strong> {{ s.what }}<br/><strong>Raise when:</strong> {{ s.raise_when }}<br/><strong>Lower when:</strong> {{ s.lower_when }}<br/><strong>Today:</strong> {{ s.today }}</td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Sector overlay matrix (added on top of base)</h3>
+  <p class="muted">Each row shows the deltas applied to base discount premium / growth haircut / MOS for that sector. Negative discount premium = sector tailwind. Positive growth haircut = upward bias to growth. Negative MOS = less conservative.</p>
+  <table class="inputs sectors">
+    <thead><tr><th>Sector keyword</th><th class="num">Δ Discount premium</th><th class="num">Δ Growth haircut</th><th class="num">Δ MOS add</th></tr></thead>
+    <tbody>
+      {% for sec, vals in assumptions.sectors.items() %}
+      <tr>
+        <td>{{ sec }}</td>
+        <td class="num {{ 'neg' if vals[0]<0 else ('pos' if vals[0]>0 else '') }}">{{ '%+.2f'|format(vals[0]*100) }}%</td>
+        <td class="num {{ 'pos' if vals[1]>0 else ('neg' if vals[1]<0 else '') }}">{{ '%+.2f'|format(vals[1]*100) }}%</td>
+        <td class="num {{ 'neg' if vals[2]<0 else ('pos' if vals[2]>0 else '') }}">{{ '%+.2f'|format(vals[2]*100) }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
 
 <footer>
   <p>

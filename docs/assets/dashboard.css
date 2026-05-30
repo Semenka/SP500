@@ -28,6 +28,51 @@ header h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; }
 .badge.muted { color: var(--muted); }
 .badge.cov { background: #14301c; border-color: #2ea043; color: #3fb950; }
 td.method { color: var(--muted); font-size: 12px; }
+
+/* Macro lens panel */
+section.macro {
+  background: linear-gradient(180deg, #1a2129 0%, #161c24 100%);
+  border-bottom: 1px solid var(--border);
+}
+.macro-head h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.macro-head .regime { margin: 0 0 14px; color: var(--fg); font-size: 14px; }
+.macro-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;
+  margin-bottom: 12px;
+}
+.macro-grid .tile {
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px;
+}
+.macro-grid .lbl { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.macro-grid .val { color: var(--fg); font-size: 16px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.geopolitics { color: var(--muted); margin: 4px 0 0; font-size: 12px; }
+
+/* Slider macro guidance */
+section.controls small.lyn {
+  display: block; color: #b8c5d3; font-size: 11px; line-height: 1.35;
+  margin-top: 4px; padding: 4px 6px; background: rgba(88,166,255,0.08);
+  border-left: 2px solid var(--accent); border-radius: 2px;
+}
+
+/* Advanced details */
+details.advanced {
+  padding: 18px 28px; border-top: 1px solid var(--border); background: var(--panel);
+}
+details.advanced > summary {
+  cursor: pointer; color: var(--accent); font-weight: 600; margin-bottom: 12px;
+  list-style: none;
+}
+details.advanced > summary::-webkit-details-marker { display: none; }
+details.advanced > summary::before { content: '▸ '; }
+details.advanced[open] > summary::before { content: '▾ '; }
+details.advanced h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 16px 0 8px; }
+table.inputs { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+table.inputs th, table.inputs td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.inputs th { text-align: left; color: var(--muted); font-weight: 600; }
+table.inputs td.pos { color: var(--pos); }
+table.inputs td.neg { color: var(--neg); }
+table.inputs.sectors td:first-child { font-weight: 600; color: var(--fg); }
 .narrative { color: var(--muted); margin: 6px 0 0; font-size: 13px; max-width: 1100px; }
 
 section { padding: 18px 28px; }
