@@ -1,3 +1,4 @@
 timestamp_utc,timestamp_et,session,elapsed_s,full,partial,no_data_kept,errors,iv_coverage,sector_coverage
 2026-05-28T19:48:14+00:00,2026-05-28 15:48:14 EDT,manual,204.1,490,4,0,0,0.8785,0.998
 2026-05-30T12:02:19+00:00,2026-05-30 08:02:19 EDT,pre-open,182.6,490,4,0,0,0.8765,0.998
+2026-05-30T12:05:30+00:00,2026-05-30 08:05:30 EDT,pre-close,185.4,490,4,0,0,0.8765,0.998
