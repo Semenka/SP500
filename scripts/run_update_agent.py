@@ -174,6 +174,9 @@ def run_refresh():
         # JSON dicts preserve insertion order in Python 3.7+; the JS does
         # first-substring-match using the same iteration order.
         "sectors": {k: list(v) for k, v in ud.SECTOR_GEO_ADJUSTMENTS.items()},
+        "macro": ud.MACRO_SNAPSHOT,
+        "slider_guidance": ud.SLIDER_GUIDANCE,
+        "dcf_input_notes": ud.DCF_INPUT_NOTES,
     }
     return report, rows, assumptions
 

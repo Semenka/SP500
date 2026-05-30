@@ -219,6 +219,66 @@ DCF_PROJECTION_YEARS = 15
 DCF_MARGIN_OF_SAFETY = 0.25
 
 
+# ── Macro snapshot — variable inputs surfaced in the dashboard "Macro lens" ──
+# These drive the per-slider guidance shown in the UI. Update alongside the
+# geopolitical overlay version (see the v5/v6/... bump checklist in CLAUDE.md).
+# Lyn Alden's framework: every IV input is a function of the macro regime;
+# the dashboard now shows the macro context inline so the user can decide
+# whether the defaults are right for *this* regime.
+MACRO_SNAPSHOT = {
+    "as_of": "2026-05-22",
+    "regime": "Stagflation re-emerging — oil shock + tariff persistence + sticky inflation",
+    "brent_usd": "$107–112",
+    "wti_usd": "$102–108",
+    "fed_funds_pct": "3.50–3.75%",
+    "pce_yoy_pct": "2.7%",
+    "ism_prices_idx": 84.6,           # highest since Apr 2022
+    "sp500_level": 7501,              # ATH May 15
+    "sp500_fwd_pe": 21.0,
+    "ten_yr_treasury_pct": "~4.5%",
+    "recession_prob_wsj_pct": 28,
+    "brk_cash_b": 397,                # record
+    "geopolitics": "Iran war ongoing since Feb 28; Hormuz mostly closed; fragile ceasefire.",
+}
+
+# Per-slider macro guidance (Lyn Alden lens) — what the parameter is, when to
+# raise it, when to lower it, and where the current regime points.
+SLIDER_GUIDANCE = {
+    "discount_premium": {
+        "what": "Adds to the 10% base discount rate. Higher → future cash flows are worth less today.",
+        "raise_when": "Rising real yields, widening risk premia, geopolitical shocks, late-cycle valuations.",
+        "lower_when": "Fed cutting decisively, falling yields, low credit spreads, early-cycle.",
+        "today": "Oil shock + sticky 2.7% PCE + ISM prices 84.6 + 10-yr ~4.5% → premium ON. Stagflation argues for a higher real discount rate (default 1.3% is light; 2.5–4% defensible).",
+    },
+    "growth_haircut": {
+        "what": "Subtracts from each ticker's starting growth before the DCF compounds it 15 years.",
+        "raise_when": "Stagflation, tariff/supply-chain hits, weakening consumer, energy spikes for non-energy names.",
+        "lower_when": "Acceleration, productivity boom, falling input costs, expansionary fiscal/monetary.",
+        "today": "Tariff regime persists post-IEEPA ruling; oil hurts margins. Default -0.5% haircut is mild; -1 to -2% reasonable for cyclicals.",
+    },
+    "mos_add": {
+        "what": "Margin of safety added on top of Buffett's base 25%. Bigger MOS = more conservative IV.",
+        "raise_when": "Valuations stretched (S&P fwd P/E ≥ 20), late-cycle, regime change in progress, fat tails.",
+        "lower_when": "Cheap broad market, panic discounts, high-conviction quality at a known floor.",
+        "today": "S&P at ATH 7,501, fwd P/E ~21x, war ongoing. Default +4.0% MOS is appropriate; +6–10% if you want more cushion.",
+    },
+    "global_growth_shift": {
+        "what": "Adds (or subtracts) a constant to every ticker's revenue growth before the DCF.",
+        "raise_when": "You believe consensus growth is too pessimistic across the board.",
+        "lower_when": "You expect a synchronized slowdown or recession (e.g. shift everything -1 to -3%).",
+        "today": "Recession-probability surveys ~28% (WSJ). Try shifting -1% to stress-test, or 0 if you trust per-ticker.",
+    },
+}
+
+# Plain-English notes for the fixed DCF inputs, rendered in the "Base inputs" panel.
+DCF_INPUT_NOTES = {
+    "discount_rate": "Cost of equity. 10% is the long-run S&P nominal average. Adjusted up per sector by the geopolitical overlay below.",
+    "terminal_growth": "Sustainable long-run growth from year 15 onward. 2.5% sits at the conservative end of nominal GDP — should not exceed long-run nominal GDP.",
+    "projection_years": "DCF horizon. Buffett-style 15 years; long enough that growth that fades early is correctly penalized.",
+    "margin_of_safety": "Buffett's bargain margin — buy at a discount to fair value. 25% base; the geopolitical overlay adds more in stressed regimes.",
+}
+
+
 def match_sector_key(industry, sector=None):
     """Return the SECTOR_GEO_ADJUSTMENTS key matching this name, or None.
 
