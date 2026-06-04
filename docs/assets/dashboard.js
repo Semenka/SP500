@@ -98,6 +98,11 @@
   }
 
   function computeIV(t, sliders) {
+    // Portfolio holdings valued by a per-company model carry a fixed intrinsic
+    // value (from portfolio_models.json) — a fundamental DCF/multiple should
+    // not move when you drag a macro slider, so return the stored IV as-is.
+    if (t.valuation_method === 'model') return t.iv_b != null ? t.iv_b * 1e9 : null;
+    if (t.valuation_method === 'etf') return null;
     return t.valuation_method === 'pb' ? financialIV(t, sliders) : buffettIV(t, sliders);
   }
 
@@ -214,21 +219,31 @@
       return;
     }
     if (section) section.style.display = '';
+    const methodLabel = (d) => {
+      if (d.valuation_method === 'model')
+        return d.model_type === 'earnings_multiple' ? 'Model · EPS×PE' : 'Model · DCF';
+      if (d.valuation_method === 'etf') return 'ETF';
+      if (d.valuation_method === 'pb') return 'P/B';
+      if (d.iv_b_computed == null) return '—';
+      return 'DCF';
+    };
     const html = port
       .map((d) => {
         const disc = d.discount_computed;
         const cls = disc == null ? '' : disc > 0 ? 'pos' : 'neg';
-        const method = d.valuation_method === 'pb' ? 'P/B' : 'DCF';
-        const verdict = disc == null ? 'no IV' : disc > 0 ? 'undervalued' : 'overvalued';
+        const verdict = disc == null ? '—' : disc > 0.25 ? 'BUY' : disc > -0.1 ? 'FAIR' : 'overvalued';
         const label = d.portfolio_display || d.company || '';
+        const src = (d.model_source || '') + (d.model_note ? ' — ' + d.model_note : '');
+        const conf = d.model_confidence && d.model_confidence !== 'user'
+          ? ' <span class="conf">(' + d.model_confidence + ')</span>' : '';
+        const ivps = d.iv_per_share != null ? fmt(d.iv_per_share, 2) : '—';
         return (
-          '<tr>' +
+          '<tr title="' + src.replace(/"/g, "'") + '">' +
           '<td><strong>' + (d.ticker || '') + '</strong></td>' +
           '<td>' + label + '</td>' +
-          '<td class="method">' + (d.iv_b_computed == null ? '—' : method) + '</td>' +
+          '<td class="method">' + methodLabel(d) + conf + '</td>' +
           '<td class="num">' + (d.price != null ? fmt(d.price, 2) : '—') + '</td>' +
-          '<td class="num">' + fmt(d.mcap_b) + '</td>' +
-          '<td class="num">' + fmt(d.iv_b_computed) + '</td>' +
+          '<td class="num">' + ivps + '</td>' +
           '<td class="num ' + cls + '">' + (disc != null ? fmt(disc * 100) + '%' : '—') + '</td>' +
           '<td class="' + cls + '">' + verdict + '</td>' +
           '</tr>'

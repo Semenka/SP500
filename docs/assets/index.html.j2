@@ -48,15 +48,15 @@
 {% macro slider_help(key) %}{% set s = g[key] %}{% if s %}{{ s.what }}&#10;&#10;Raise when: {{ s.raise_when }}&#10;Lower when: {{ s.lower_when }}{% endif %}{% endmacro %}
 
 <section class="viz portfolio" id="portfolio-section" style="display:none;">
-  <h2>📁 My Portfolio — IV vs market price</h2>
-  <p class="muted">Your tracked holdings, valued every run. Recomputes live with the sliders below. Foreign names use native currency; <b>discount %</b> is currency-invariant.</p>
+  <h2>📁 My Portfolio — intrinsic value vs market price</h2>
+  <p class="muted">Each holding valued by a per-company conservative-Buffett model (your Google-Sheet DCFs where they exist, newly-built models otherwise). Hover a row for the model source &amp; assumptions. IV/share is in the listing currency; <b>Upside %</b> = (IV − price) / price. Model IVs are fixed (a fundamental value doesn't move with the macro sliders) — only the daily price changes.</p>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Holding</th><th>Val</th>
-          <th class="num">Price</th><th class="num">MCap B</th>
-          <th class="num">IV B</th><th class="num">Discount %</th><th>Verdict</th>
+          <th>Ticker</th><th>Holding</th><th>Model</th>
+          <th class="num">Price</th><th class="num">IV / share</th>
+          <th class="num">Upside %</th><th>Verdict</th>
         </tr>
       </thead>
       <tbody id="portfolio-body"></tbody>
