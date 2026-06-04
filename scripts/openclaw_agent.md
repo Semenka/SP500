@@ -16,6 +16,29 @@ the NYSE trading-day check (hardcoded holiday table in `run_update_agent.py`,
 covers 2026–2030) and exits 0 on holidays. No need to track holiday calendars
 in OpenClaw. Extend the table when 2030 nears.
 
+### Live OpenClaw cron jobs (registered)
+
+Both jobs run under a dedicated isolated agent `sp500`, full default toolset,
+delivery `none` (the script sends its own Telegram digest), and a failure
+alert to Telegram `148594943` after 1 consecutive error.
+
+| Job name | id | cron (tz America/New_York) |
+|---|---|---|
+| `sp500-iv-preopen`  | `2b62e4a6-ed22-4b5c-a037-5785162c9534` | `0 9 * * 1-5` |
+| `sp500-iv-preclose` | `70d1fe9e-8c1d-46f5-afcf-2f2c4eb084e2` | `30 15 * * 1-5` |
+
+Manage them:
+
+```
+openclaw cron list
+openclaw cron run <id>          # fire now (debug) — verified exit 0 end-to-end
+openclaw cron runs --id <id>    # run history
+openclaw cron disable <id>      # pause
+```
+
+The `sp500` agent's workspace is this repo; OpenClaw drops identity/scaffold
+files (IDENTITY.md, SOUL.md, etc.) here — they're `.gitignore`d.
+
 ## What the agent does on each fire
 
 1. NYSE trading-day check (skip + exit 0 if not a session).

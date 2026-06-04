@@ -385,7 +385,61 @@ def _prior_discounts():
     return out
 
 
-def build_alert_text(report, rows, run_meta):
+def _prior_snapshot():
+    """Map ticker -> {price, iv_b, discount} from the most recent PRIOR run in
+    history.csv (the run before the one we just appended). Used to compute the
+    'revised valuations' section — what changed since last update."""
+    if not HISTORY_CSV.exists():
+        return {}
+    import collections
+    by_ts = collections.OrderedDict()
+    with HISTORY_CSV.open() as f:
+        for row in csv.DictReader(f):
+            by_ts.setdefault(row["timestamp_utc"], []).append(row)
+    timestamps = list(by_ts.keys())
+    if len(timestamps) < 2:
+        return {}
+    out = {}
+    for r in by_ts[timestamps[-2]]:
+        def f(x):
+            try:
+                return float(x) if x not in (None, "") else None
+            except ValueError:
+                return None
+        out[r["ticker"]] = {"price": f(r.get("price")), "iv_b": f(r.get("iv_b")),
+                            "discount": f(r.get("discount_pct"))}
+    return out
+
+
+def fetch_news(tickers, max_items=1):
+    """Best-effort: latest headline(s) per ticker via yfinance. Never raises —
+    a news outage must not block the digest. Returns {ticker: [titles]}."""
+    out = {}
+    try:
+        import yfinance as yf
+    except Exception:
+        return out
+    for tk in tickers:
+        try:
+            items = yf.Ticker(tk).news or []
+            titles = []
+            for it in items[:max_items * 3]:
+                # yfinance shapes vary: flat {'title':..} or {'content':{'title':..}}
+                title = it.get("title") or (it.get("content") or {}).get("title")
+                if title:
+                    titles.append(title.strip())
+                if len(titles) >= max_items:
+                    break
+            if titles:
+                out[tk] = titles
+        except Exception:
+            continue
+    return out
+
+
+def build_alert_text(report, rows, run_meta, with_news=True):
+    """Short digest: run health, undervalued names, newly-crossed signals,
+    biggest revised valuations vs last run, and a headline for the top movers."""
     th = DEEP_DISCOUNT_THRESHOLD
     valued = [r for r in rows if r.get("discount") is not None]
     undervalued = sorted(
@@ -399,10 +453,28 @@ def build_alert_text(report, rows, run_meta):
     ]
     brk_under = [r for r in undervalued if r.get("brk_held") == "YES"]
 
+    # ── Revised valuations: biggest discount swing vs the prior run ──────────
+    prior_snap = _prior_snapshot()
+    revisions = []
+    for r in valued:
+        p = prior_snap.get(r["ticker"])
+        if not p or p.get("discount") is None:
+            continue
+        delta = r["discount"] - p["discount"]          # change in discount (fraction)
+        if abs(delta) >= 0.05:                          # ≥ 5 percentage points
+            revisions.append((abs(delta), delta, r, p))
+    revisions.sort(reverse=True, key=lambda x: x[0])
+    top_revisions = revisions[:6]
+
     def line(r):
         star = " ⭐BRK" if r.get("brk_held") == "YES" else ""
         method = "P/B" if r.get("valuation_method") == "pb" else "DCF"
         return f"• {r['ticker']} {r['discount']*100:+.0f}% ({method}){star}"
+
+    def rev_line(delta, r, p):
+        arrow = "▲" if delta > 0 else "▼"
+        return (f"• {r['ticker']} {arrow} disc {p['discount']*100:+.0f}% → "
+                f"{r['discount']*100:+.0f}% ({delta*100:+.0f}pp)")
 
     lines = [
         f"📊 <b>S&amp;P 500 IV update — {run_meta['session']}</b>",
@@ -416,12 +488,29 @@ def build_alert_text(report, rows, run_meta):
         f"<b>{len(undervalued)} names ≥ +{th*100:.0f}% undervalued</b>",
     ]
     if undervalued:
-        lines += [line(r) for r in undervalued[:8]]
+        lines += [line(r) for r in undervalued[:6]]
     if crossed:
         lines += ["", f"<b>Newly crossed +{th*100:.0f}% since last run:</b>"]
-        lines += [line(r) for r in crossed[:8]]
+        lines += [line(r) for r in crossed[:6]]
     if brk_under:
-        lines += ["", f"<b>BRK-held & undervalued:</b> " + ", ".join(r["ticker"] for r in brk_under[:10])]
+        lines += ["", "<b>BRK-held &amp; undervalued:</b> " + ", ".join(r["ticker"] for r in brk_under[:10])]
+
+    if top_revisions:
+        lines += ["", "<b>Biggest revised valuations vs last run:</b>"]
+        lines += [rev_line(d, r, p) for _, d, r, p in top_revisions]
+
+    # ── Major impacting news for the top movers (best-effort) ────────────────
+    if with_news and top_revisions:
+        movers = [r["ticker"] for _, _, r, _ in top_revisions[:4]]
+        news = fetch_news(movers, max_items=1)
+        if news:
+            lines += ["", "<b>News on movers:</b>"]
+            for tk in movers:
+                if tk in news:
+                    headline = news[tk][0]
+                    if len(headline) > 90:
+                        headline = headline[:87] + "…"
+                    lines.append(f"• <b>{tk}</b>: {headline}")
     return "\n".join(lines)
 
 
@@ -435,6 +524,21 @@ def main():
                         help="re-render dashboard only, do not call yfinance (debug)")
     args = parser.parse_args()
 
+    # Crash safety net: any unhandled failure still pings Telegram so a silent
+    # dead agent is impossible. Re-raise so OpenClaw records the error too.
+    try:
+        _run(args)
+    except SystemExit:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        if not args.no_telegram:
+            send_telegram(f"🛑 <b>SP500 agent crashed</b> ({args.session})\n<code>{type(e).__name__}: {e}</code>")
+        raise
+
+
+def _run(args):
     ensure_deps()
 
     et = ZoneInfo("America/New_York")

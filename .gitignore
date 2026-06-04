@@ -4,3 +4,15 @@ __pycache__/
 dashboard_update.log
 last_update_report.json
 .gstack/
+
+# OpenClaw agent scaffold — the `sp500` update agent uses this repo as its
+# workspace, so OpenClaw drops identity/bootstrap files here. They are not part
+# of the project; ignore so the tracked tree + GitHub Pages stay clean.
+.openclaw/
+/AGENTS.md
+/HEARTBEAT.md
+/IDENTITY.md
+/SOUL.md
+/TOOLS.md
+/USER.md
+workspace-state.json
