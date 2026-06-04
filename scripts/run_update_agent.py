@@ -180,6 +180,7 @@ def attach_portfolio(rows):
     if not holdings:
         return rows, []
     by_symbol = {h["symbol"]: h for h in holdings}
+    models = ud.load_portfolio_models()
 
     present = set()
     for r in rows:
@@ -187,18 +188,22 @@ def attach_portfolio(rows):
         if h:
             r["in_portfolio"] = True
             r["portfolio_display"] = h.get("display") or r.get("ticker")
+            # Override the generic-engine IV with the per-company model.
+            ud.apply_model_to_row(r, models.get(r["ticker"]))
             present.add(r["ticker"])
 
     missing = [h for h in holdings if h["symbol"] not in present]
     if missing:
         print(f"portfolio: fetching {len(missing)} non-S&P holdings: "
               f"{', '.join(h['symbol'] for h in missing)}")
-        extra, errs = ud.fetch_portfolio_rows(missing)
+        extra, errs = ud.fetch_portfolio_rows(missing, models=models)
         for r in extra:
             r["portfolio_display"] = r.get("company")
         if errs:
             print(f"portfolio: fetch errors: {errs}")
         rows.extend(extra)
+    n_model = sum(1 for r in rows if r.get("in_portfolio") and r.get("valuation_method") == "model")
+    print(f"portfolio: {n_model} holdings valued via per-company model")
 
     portfolio_rows = [r for r in rows if r.get("in_portfolio")]
     # Preserve the user's configured order.
@@ -555,21 +560,31 @@ def build_alert_text(report, rows, run_meta, with_news=True, portfolio_rows=None
         portfolio_rows = [r for r in rows if r.get("in_portfolio")]
     if portfolio_rows:
         lines += ["", "<b>📁 Your portfolio — IV vs price</b>"]
+        def method_tag(r):
+            vm = r.get("valuation_method")
+            if vm == "model":
+                return "model·EPS×PE" if r.get("model_type") == "earnings_multiple" else "model·DCF"
+            if vm == "etf":
+                return "ETF"
+            if vm == "pb":
+                return "P/B"
+            return "DCF"
         for r in portfolio_rows:
             tk = r.get("portfolio_display") or r.get("ticker")
             d = r.get("discount")
             if d is None:
-                lines.append(f"• {tk}: price-only (no IV)")
+                lines.append(f"• {tk}: price-only (no model)")
                 continue
-            method = "P/B" if r.get("valuation_method") == "pb" else "DCF"
             tag = ""
             ps = prior_snap.get(r["ticker"])
             if ps and ps.get("discount") is not None:
                 dd = d - ps["discount"]
                 if abs(dd) >= 0.01:
                     tag = f" ({'▲' if dd>0 else '▼'}{abs(dd)*100:.0f}pp)"
-            verdict = "undervalued" if d > 0 else "overvalued"
-            lines.append(f"• {tk}: <b>{d*100:+.0f}%</b>{tag} {verdict} [{method}]")
+            verdict = "BUY" if d > 0.25 else "FAIR" if d > -0.10 else "overvalued"
+            conf = r.get("model_confidence")
+            cflag = f" ⚠{conf}" if conf in ("low",) else ""
+            lines.append(f"• {tk}: <b>{d*100:+.0f}%</b>{tag} {verdict} [{method_tag(r)}{cflag}]")
 
     lines += [
         "",

@@ -565,15 +565,61 @@ def fetch_batch(tickers):
     return results, errors
 
 
-def fetch_portfolio_rows(holdings):
+# ── Per-company intrinsic-value models (portfolio) ───────────────────────────
+# Loaded from portfolio_models.json. Two conservative-Buffett model types:
+#   fcf_dcf            — 15-yr mid-year per-share owner-earnings DCF (reproduces
+#                        the user's Google-Sheet models within <0.5%).
+#   earnings_multiple  — normalized EPS x justified P/E (+ net cash per share),
+#                        for banks / high-leverage names where an FCF DCF with
+#                        full net-debt subtraction is the wrong tool.
+PORTFOLIO_MODELS_PATH = os.path.join(SCRIPT_DIR, 'portfolio_models.json')
+
+
+def model_iv_per_share(spec):
+    """Compute intrinsic value per share (in the listing/price currency) from a
+    model spec. Returns None for non-modelable specs (e.g. ETF)."""
+    mtype = spec.get("model_type")
+    if mtype == "fcf_dcf":
+        g = spec["growth_ps"]
+        fcf = spec["fcf_ps0"]
+        r = spec["discount_rate"]
+        tg = spec["terminal_growth"]
+        pv = 0.0
+        for n in range(1, 16):
+            gn = g[0] if n <= 5 else g[1] if n <= 10 else g[2]
+            fcf *= (1 + gn)
+            pv += fcf / (1 + r) ** (n - 0.5)
+        tv = fcf * (1 + tg) / (r - tg)
+        pv_tv = tv / (1 + r) ** (15 - 0.5)
+        return pv + pv_tv - spec.get("net_debt_ps", 0.0)
+    if mtype == "earnings_multiple":
+        return spec["normalized_eps"] * spec["target_pe"] + spec.get("net_cash_ps", 0.0)
+    return None
+
+
+def load_portfolio_models():
+    if not os.path.exists(PORTFOLIO_MODELS_PATH):
+        return {}
+    try:
+        with open(PORTFOLIO_MODELS_PATH) as f:
+            return json.load(f).get("models", {})
+    except Exception as e:
+        log(f"portfolio models: could not read {PORTFOLIO_MODELS_PATH}: {e}")
+        return {}
+
+
+def fetch_portfolio_rows(holdings, models=None):
     """Fetch + value an explicit watchlist that may include non-S&P, foreign,
     or ETF symbols. Returns rows in the SAME shape as LAST_RUN_ROWS, each
-    flagged in_portfolio=True, reusing the identical fetch + valuation path
-    (DCF / P-B routing) so the web recompute and parity gate work unchanged.
-    Foreign names use yfinance suffixes (e.g. 1810.HK, WISE.L); the discount
-    is a currency-invariant ratio (IV and market cap share the listing's
-    currency), so cross-currency holdings compare correctly on discount %.
-    ETFs / negative-or-missing-FCF names get iv_b=None (price only)."""
+    flagged in_portfolio=True.
+
+    Valuation: if a per-company model exists in portfolio_models.json, the
+    intrinsic value comes from THAT model (recomputed from its inputs) and the
+    discount is (IV/share - live price) / live price — a clean same-currency
+    ratio. Otherwise it falls back to the generic DCF/P-B engine. ETFs / names
+    with no model + no usable FCF get iv_b=None (price only)."""
+    if models is None:
+        models = load_portfolio_models()
     rows = []
     errors = {}
     for h in holdings:
@@ -583,7 +629,7 @@ def fetch_portfolio_rows(holdings):
             errors[sym] = err
         industry_str = data.get("industry") or ""
         sector_str = data.get("sector") or ""
-        rows.append({
+        row = {
             "ticker": sym,
             "company": h.get("display") or sym,
             "industry": industry_str,
@@ -609,8 +655,42 @@ def fetch_portfolio_rows(holdings):
             "brk_pos_b": None,
             "in_portfolio": True,
             "sp500": False,   # non-constituent (foreign/ADR/ETF) — exclude from S&P scans
-        })
+        }
+        apply_model_to_row(row, models.get(sym))
+        rows.append(row)
     return rows, errors
+
+
+def apply_model_to_row(row, spec):
+    """If a portfolio model spec exists, override the row's IV/discount with the
+    model-derived intrinsic value per share vs the live price. Adds model_*
+    fields for the dashboard/digest. No-op if spec is None or non-modelable."""
+    if not spec:
+        return
+    row["model_source"] = spec.get("source")
+    row["model_confidence"] = spec.get("confidence")
+    row["model_note"] = spec.get("note")
+    row["model_currency"] = spec.get("currency")
+    if spec.get("model_type") == "none":
+        row["valuation_method"] = "etf"
+        row["iv_per_share"] = None
+        return
+    iv_ps = model_iv_per_share(spec)
+    if iv_ps is None:
+        return
+    row["valuation_method"] = "model"
+    row["model_type"] = spec.get("model_type")
+    row["iv_per_share"] = round(iv_ps, 4)
+    price = row.get("price")
+    if price and price > 0:
+        row["discount"] = (iv_ps - price) / price
+        # iv_b in the listing currency, consistent with yfinance mcap_b for
+        # the same ticker (both local for foreign, both USD for US/ADR).
+        if row.get("mcap_b") is not None and price:
+            shares_implied = row["mcap_b"] / price  # billions of shares
+            row["iv_b"] = iv_ps * shares_implied
+    else:
+        row["discount"] = None
 
 
 # ── Style helpers ─────────────────────────────────────────────────────────────

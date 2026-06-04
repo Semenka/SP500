@@ -1,0 +1,404 @@
+{
+  "_comment": "Per-company intrinsic-value models for the portfolio. fcf_dcf = 15-yr mid-year per-share owner-earnings DCF (conservative Buffett). earnings_multiple = normalized EPS x justified P/E (for banks / high-leverage). All per-share inputs in the listing/price currency. The daily agent recomputes iv_per_share from these inputs and compares to the live price. Edit freely.",
+  "as_of": "2026-06-05",
+  "models": {
+    "DPZ": {
+      "ticker": "DPZ",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 17.86,
+      "growth_ps": [
+        0.087,
+        0.077,
+        0.066
+      ],
+      "discount_rate": 0.09,
+      "terminal_growth": 0.025,
+      "net_debt_ps": 142.38,
+      "iv_per_share": 364.2,
+      "published_iv_per_share": 363.68,
+      "note": "User's own model from the Google Sheet."
+    },
+    "UNH": {
+      "ticker": "UNH",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 26.43,
+      "growth_ps": [
+        0.082,
+        0.071,
+        0.061
+      ],
+      "discount_rate": 0.09,
+      "terminal_growth": 0.025,
+      "net_debt_ps": 88.09,
+      "iv_per_share": 621.11,
+      "published_iv_per_share": 621.36,
+      "note": "User's own model from the Google Sheet."
+    },
+    "1810.HK": {
+      "ticker": "1810.HK",
+      "model_type": "fcf_dcf",
+      "currency": "HKD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 1.51,
+      "growth_ps": [
+        0.12,
+        0.08,
+        0.05
+      ],
+      "discount_rate": 0.11,
+      "terminal_growth": 0.03,
+      "net_debt_ps": -4.31,
+      "iv_per_share": 40.46,
+      "published_iv_per_share": 40.46,
+      "note": "User's own model from the Google Sheet."
+    },
+    "LEN": {
+      "ticker": "LEN",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 6.06,
+      "growth_ps": [
+        0.094,
+        0.083,
+        0.073
+      ],
+      "discount_rate": 0.1,
+      "terminal_growth": 0.02,
+      "net_debt_ps": 8.48,
+      "iv_per_share": 143.29,
+      "published_iv_per_share": 143.21,
+      "note": "User's own model from the Google Sheet."
+    },
+    "POOL": {
+      "ticker": "POOL",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 10.35,
+      "growth_ps": [
+        0.082,
+        0.082,
+        0.072
+      ],
+      "discount_rate": 0.09,
+      "terminal_growth": 0.025,
+      "net_debt_ps": 32.02,
+      "iv_per_share": 265.18,
+      "published_iv_per_share": 266.54,
+      "note": "User's own model from the Google Sheet."
+    },
+    "TTE": {
+      "ticker": "TTE",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 6.1,
+      "growth_ps": [
+        0.067,
+        0.057,
+        0.047
+      ],
+      "discount_rate": 0.09,
+      "terminal_growth": 0.0,
+      "net_debt_ps": 9.48,
+      "iv_per_share": 112.92,
+      "published_iv_per_share": 113.06,
+      "note": "User's own model from the Google Sheet."
+    },
+    "NVDA": {
+      "ticker": "NVDA",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "google-sheet:Portfolio DCF (Buffett framework)",
+      "as_of": "2026-06-05",
+      "confidence": "user",
+      "fcf_ps0": 3.91,
+      "growth_ps": [
+        0.202,
+        0.1,
+        0.059
+      ],
+      "discount_rate": 0.1,
+      "terminal_growth": 0.03,
+      "net_debt_ps": -1.56,
+      "iv_per_share": 166.76,
+      "published_iv_per_share": 166.42,
+      "note": "User's own model from the Google Sheet."
+    },
+    "GOOGL": {
+      "ticker": "GOOGL",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "fcf_ps0": 5.9401,
+      "growth_ps": [
+        0.107,
+        0.0865,
+        0.066
+      ],
+      "discount_rate": 0.09,
+      "terminal_growth": 0.025,
+      "net_debt_ps": -2.5575,
+      "inputs": {
+        "normalized_owner_earnings_total": 72.0,
+        "shares_m": 12121.0,
+        "net_debt_total": -31.0,
+        "fcf_growth": [
+          0.08,
+          0.06,
+          0.04
+        ],
+        "buyback_yield": 0.025
+      },
+      "iv_per_share": 192.11,
+      "note": "FCF ~$72B (capex-heavy AI build); 8/6/4% growth, 9% Buffett hurdle. Conservative hurdle makes a 62x-FCF entry look rich."
+    },
+    "OXY": {
+      "ticker": "OXY",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "fcf_ps0": 5.0271,
+      "growth_ps": [
+        0.0302,
+        0.0201,
+        0.01
+      ],
+      "discount_rate": 0.1,
+      "terminal_growth": 0.0,
+      "net_debt_ps": 12.8695,
+      "inputs": {
+        "normalized_owner_earnings_total": 5.0,
+        "shares_m": 994.6,
+        "net_debt_total": 12.8,
+        "fcf_growth": [
+          0.02,
+          0.01,
+          0.0
+        ],
+        "buyback_yield": 0.01
+      },
+      "iv_per_share": 51.28,
+      "note": "Cycle-avg FCF ~$5B (ex-2022 spike); energy = no-growth conservative, 0% terminal, like the sheet's TTE."
+    },
+    "CRCL": {
+      "ticker": "CRCL",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "low",
+      "fcf_ps0": 1.9574,
+      "growth_ps": [
+        0.12,
+        0.07,
+        0.03
+      ],
+      "discount_rate": 0.12,
+      "terminal_growth": 0.03,
+      "net_debt_ps": -6.5246,
+      "inputs": {
+        "normalized_owner_earnings_total": 0.45,
+        "shares_m": 229.9,
+        "net_debt_total": -1.5,
+        "fcf_growth": [
+          0.12,
+          0.07,
+          0.03
+        ],
+        "buyback_yield": 0.0
+      },
+      "iv_per_share": 44.8,
+      "note": "Recent IPO; FCF tied to interest on USDC reserves (rate-sensitive). 12% discount for risk. Speculative."
+    },
+    "BABA": {
+      "ticker": "BABA",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "fcf_ps0": 5.4187,
+      "growth_ps": [
+        0.071,
+        0.0608,
+        0.0506
+      ],
+      "discount_rate": 0.11,
+      "terminal_growth": 0.03,
+      "net_debt_ps": -14.5888,
+      "inputs": {
+        "normalized_owner_earnings_total": 13.0,
+        "shares_m": 2399.1,
+        "net_debt_total": -35.0,
+        "fcf_growth": [
+          0.05,
+          0.04,
+          0.03
+        ],
+        "buyback_yield": 0.02
+      },
+      "iv_per_share": 114.54,
+      "note": "Normalized owner-earnings ~$13B USD (reported FCF depressed by AI capex surge; NI ~$14B). ~$35B net cash. 11% for China risk. Per ADS."
+    },
+    "BIDU": {
+      "ticker": "BIDU",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "fcf_ps0": 9.0975,
+      "growth_ps": [
+        0.0504,
+        0.0403,
+        0.0302
+      ],
+      "discount_rate": 0.12,
+      "terminal_growth": 0.02,
+      "net_debt_ps": -82.7875,
+      "inputs": {
+        "normalized_owner_earnings_total": 2.5,
+        "shares_m": 274.8,
+        "net_debt_total": -22.75,
+        "fcf_growth": [
+          0.04,
+          0.03,
+          0.02
+        ],
+        "buyback_yield": 0.01
+      },
+      "iv_per_share": 202.17,
+      "note": "Core search earnings ~$2.5B; ~$23B net cash dominates value (cash-rich, trades near cash + iQiyi). 12% China discount. Per ADS."
+    },
+    "WISE.L": {
+      "ticker": "WISE.L",
+      "model_type": "fcf_dcf",
+      "currency": "GBP_pence",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "fcf_ps0": 44.9865,
+      "growth_ps": [
+        0.12,
+        0.08,
+        0.05
+      ],
+      "discount_rate": 0.11,
+      "terminal_growth": 0.03,
+      "net_debt_ps": -127.9616,
+      "inputs": {
+        "normalized_owner_earnings_total": 0.45,
+        "shares_m": 1000.3,
+        "net_debt_total": -1.28,
+        "fcf_growth": [
+          0.12,
+          0.08,
+          0.05
+        ],
+        "buyback_yield": 0.0
+      },
+      "iv_per_share": 1204.89,
+      "note": "Owner-earnings ~\u00a30.45B (use NI, not float-inflated OCF). High-growth fintech 12/8/5%. Price in pence; IV converted GBP->pence."
+    },
+    "DOYU": {
+      "ticker": "DOYU",
+      "model_type": "fcf_dcf",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "low",
+      "fcf_ps0": 0.0,
+      "growth_ps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "discount_rate": 0.12,
+      "terminal_growth": 0.0,
+      "net_debt_ps": -8.2781,
+      "inputs": {
+        "normalized_owner_earnings_total": 0.0,
+        "shares_m": 30.2,
+        "net_debt_total": -0.25,
+        "fcf_growth": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "buyback_yield": 0.0
+      },
+      "iv_per_share": 8.28,
+      "note": "Loss-making micro-cap, no earnings power \u2192 IV is essentially a net-cash floor (heavily haircut for China trapped-cash risk + unreliable reported cash). A classic net-net; low confidence."
+    },
+    "AAL": {
+      "ticker": "AAL",
+      "model_type": "earnings_multiple",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "low",
+      "normalized_eps": 1.0,
+      "target_pe": 8.0,
+      "net_cash_ps": 0.0,
+      "iv_per_share": 8.0,
+      "note": "Airline: a 15-yr FCF DCF with full $27B net-debt subtraction implies ~zero equity. Use normalized mid-cycle EPS x 8 (cyclical, leveraged). Equity is partly a deleveraging option."
+    },
+    "SYF": {
+      "ticker": "SYF",
+      "model_type": "earnings_multiple",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "normalized_eps": 10.0,
+      "target_pe": 9.0,
+      "net_cash_ps": 0.0,
+      "iv_per_share": 90.0,
+      "note": "Credit-card lender: banks must retain capital to grow, so an FCF-DCF-with-buyback overstates. Normalized EPS ~$10 x 9 (subprime-tilted, cyclical credit)."
+    },
+    "USB": {
+      "ticker": "USB",
+      "model_type": "earnings_multiple",
+      "currency": "USD",
+      "source": "created (conservative Buffett style)",
+      "as_of": "2026-06-05",
+      "confidence": "med",
+      "normalized_eps": 4.19,
+      "target_pe": 11.0,
+      "net_cash_ps": 0.0,
+      "iv_per_share": 46.09,
+      "note": "Quality regional bank, ~14% ROE. Normalized EPS $4.19 x 11 conservative multiple. (FCF-DCF inappropriate for banks.)"
+    },
+    "VOO": {
+      "ticker": "VOO",
+      "model_type": "none",
+      "currency": "USD",
+      "source": "n/a",
+      "as_of": "2026-06-05",
+      "confidence": "n/a",
+      "note": "S&P 500 ETF \u2014 price ~ NAV by construction; no single-name DCF. Treated as fairly valued (market = intrinsic)."
+    }
+  }
+}

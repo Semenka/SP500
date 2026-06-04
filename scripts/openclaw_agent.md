@@ -93,6 +93,15 @@ Reuses the OpenClaw `default` bot token (read from `~/.openclaw/openclaw.json`);
 
 Outputs: `docs/data/portfolio.json` (the holdings subset), a "My Portfolio" table at the top of the dashboard (slider-recomputed), and the lead block of every Telegram digest (per-holding discount + change vs last run). The portfolio names are also appended to `history.csv` for the time-series chart.
 
+### Per-company intrinsic-value models
+
+`portfolio_models.json` holds a conservative-Buffett DCF model per holding. Portfolio IV comes from these models (not the generic S&P overlay engine), and upside = (IV/share − live price) / price is recomputed every run against the live price. Two model types:
+
+- **`fcf_dcf`** — 15-yr mid-year per-share owner-earnings DCF, 3-phase growth (per-share growth already folds in the buyback yield). Reproduces the user's Google-Sheet models within <0.5%.
+- **`earnings_multiple`** — normalized EPS × justified P/E (+ net cash/share). Used for banks (USB, SYF) and high-leverage names (AAL) where a 15-yr FCF DCF with full net-debt subtraction is the wrong tool.
+
+7 models come from the owner's Google Sheet (DPZ, UNH, 1810.HK, LEN, POOL, TTE, NVDA); 10 were created this session with conservative macro (GOOGL, OXY, CRCL, BABA, BIDU, WISE.L, DOYU, AAL, SYF, USB); VOO is an ETF (no single-name DCF). All inputs are per-share in the listing currency, so no runtime FX is needed. Model IVs are fixed (a fundamental value doesn't move with the macro sliders) and recomputed only when you edit the spec. Regenerate with `python3 scripts/build_portfolio_models.py`. Each non-sheet model carries a `confidence` flag (low/med) and a `note` explaining its assumptions.
+
 ## First-time setup
 
 1. `pip3 install -r requirements.txt` from the repo root.
