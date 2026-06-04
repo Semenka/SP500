@@ -83,6 +83,16 @@ Reuses the OpenClaw `default` bot token (read from `~/.openclaw/openclaw.json`);
 
 `docs/data/runs.csv` appends one row per run (elapsed, full/partial/no-data, IV & sector coverage). The dashboard header shows IV-coverage and overlay-coverage badges.
 
+## Personal portfolio
+
+`portfolio.json` (repo root) is your tracked watchlist — edit `holdings` to change it; the agent picks it up next run. Each holding is valued every run via the same DCF/P-B engine:
+
+- S&P constituents already in the workbook are flagged in place.
+- Non-S&P names (foreign/ADR/ETF) are fetched separately. Foreign symbols need a yfinance suffix (`.HK` Hong Kong, `.L` London). Discount % is currency-invariant, so cross-currency holdings compare correctly.
+- ETFs and negative/again-FCF names show price only (no IV).
+
+Outputs: `docs/data/portfolio.json` (the holdings subset), a "My Portfolio" table at the top of the dashboard (slider-recomputed), and the lead block of every Telegram digest (per-holding discount + change vs last run). The portfolio names are also appended to `history.csv` for the time-series chart.
+
 ## First-time setup
 
 1. `pip3 install -r requirements.txt` from the repo root.

@@ -1,0 +1,23 @@
+{
+  "_comment": "Personal watchlist valued every run (IV vs price) and surfaced in the dashboard's 'My Portfolio' section + the Telegram digest. 'symbol' is the yfinance ticker (foreign names need a suffix: .HK Hong Kong, .L London). Edit this list to change holdings; the agent picks it up on the next run. ETFs and negative/again-FCF names show price only (no IV).",
+  "holdings": [
+    {"symbol": "1810.HK", "display": "Xiaomi (1810.HK)"},
+    {"symbol": "AAL",     "display": "American Airlines"},
+    {"symbol": "BABA",    "display": "Alibaba"},
+    {"symbol": "BIDU",    "display": "Baidu"},
+    {"symbol": "CRCL",    "display": "Circle"},
+    {"symbol": "DOYU",    "display": "DouYu"},
+    {"symbol": "DPZ",     "display": "Domino's Pizza"},
+    {"symbol": "GOOGL",   "display": "Alphabet"},
+    {"symbol": "LEN",     "display": "Lennar"},
+    {"symbol": "NVDA",    "display": "Nvidia"},
+    {"symbol": "OXY",     "display": "Occidental"},
+    {"symbol": "POOL",    "display": "Pool Corp"},
+    {"symbol": "SYF",     "display": "Synchrony"},
+    {"symbol": "TTE",     "display": "TotalEnergies"},
+    {"symbol": "UNH",     "display": "UnitedHealth"},
+    {"symbol": "USB",     "display": "U.S. Bancorp"},
+    {"symbol": "VOO",     "display": "Vanguard S&P 500 ETF"},
+    {"symbol": "WISE.L",  "display": "Wise plc (WISE.L)"}
+  ]
+}

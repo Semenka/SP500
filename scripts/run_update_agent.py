@@ -50,6 +50,8 @@ HISTORY_CSV = DATA_DIR / "history.csv"
 RUNS_CSV = DATA_DIR / "runs.csv"
 INDEX_HTML = DOCS_DIR / "index.html"
 PARITY_JS = REPO_ROOT / "scripts" / "parity_check.js"
+PORTFOLIO_CONFIG = REPO_ROOT / "portfolio.json"
+PORTFOLIO_JSON = DATA_DIR / "portfolio.json"
 
 # Telegram (reuses the OpenClaw "default" bot). Override via env if desired.
 OPENCLAW_CONFIG = Path.home() / ".openclaw" / "openclaw.json"
@@ -154,11 +156,74 @@ def is_nyse_trading_day(today_et: dt.date) -> bool:
     return True
 
 
+def load_portfolio():
+    """Read the personal watchlist from portfolio.json. Returns a list of
+    {symbol, display}. Missing/invalid config → empty list (no portfolio)."""
+    if not PORTFOLIO_CONFIG.exists():
+        return []
+    try:
+        cfg = json.loads(PORTFOLIO_CONFIG.read_text())
+        holdings = cfg.get("holdings", [])
+        return [h for h in holdings if h.get("symbol")]
+    except Exception as e:
+        print(f"portfolio: could not read {PORTFOLIO_CONFIG.name}: {e}")
+        return []
+
+
+def attach_portfolio(rows):
+    """Flag S&P rows that are in the portfolio, then fetch + append any
+    holdings not in the S&P universe (foreign/ADR/ETF). Mutates and returns
+    `rows`. Also returns the portfolio subset for the dedicated data file."""
+    import update_sp500_dashboard as ud
+
+    holdings = load_portfolio()
+    if not holdings:
+        return rows, []
+    by_symbol = {h["symbol"]: h for h in holdings}
+
+    present = set()
+    for r in rows:
+        h = by_symbol.get(r.get("ticker"))
+        if h:
+            r["in_portfolio"] = True
+            r["portfolio_display"] = h.get("display") or r.get("ticker")
+            present.add(r["ticker"])
+
+    missing = [h for h in holdings if h["symbol"] not in present]
+    if missing:
+        print(f"portfolio: fetching {len(missing)} non-S&P holdings: "
+              f"{', '.join(h['symbol'] for h in missing)}")
+        extra, errs = ud.fetch_portfolio_rows(missing)
+        for r in extra:
+            r["portfolio_display"] = r.get("company")
+        if errs:
+            print(f"portfolio: fetch errors: {errs}")
+        rows.extend(extra)
+
+    portfolio_rows = [r for r in rows if r.get("in_portfolio")]
+    # Preserve the user's configured order.
+    order = {h["symbol"]: i for i, h in enumerate(holdings)}
+    portfolio_rows.sort(key=lambda r: order.get(r["ticker"], 999))
+    return rows, portfolio_rows
+
+
+def write_portfolio_json(portfolio_rows, run_meta):
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PORTFOLIO_JSON.write_text(json.dumps({
+        "generated_at_et": run_meta["timestamp_et"],
+        "session": run_meta["session"],
+        "holdings": portfolio_rows,
+    }, indent=2, default=str))
+
+
 def run_refresh():
     import update_sp500_dashboard as ud
 
     report = ud.update_dashboard()
     rows = ud.get_last_run_rows()
+    rows, portfolio_rows = attach_portfolio(rows)
+    report["portfolio_count"] = len(portfolio_rows)
+    report["portfolio_valued"] = sum(1 for r in portfolio_rows if r.get("iv_b") is not None)
     assumptions = {
         "version": ud.GEO_VERSION,
         "narrative": ud.GEO_NARRATIVE,
@@ -178,7 +243,7 @@ def run_refresh():
         "slider_guidance": ud.SLIDER_GUIDANCE,
         "dcf_input_notes": ud.DCF_INPUT_NOTES,
     }
-    return report, rows, assumptions
+    return report, rows, assumptions, portfolio_rows
 
 
 def write_latest_json(rows, run_meta):
@@ -437,11 +502,15 @@ def fetch_news(tickers, max_items=1):
     return out
 
 
-def build_alert_text(report, rows, run_meta, with_news=True):
-    """Short digest: run health, undervalued names, newly-crossed signals,
-    biggest revised valuations vs last run, and a headline for the top movers."""
+def build_alert_text(report, rows, run_meta, with_news=True, portfolio_rows=None):
+    """Short digest: leads with the personal portfolio (IV vs price per holding,
+    + change since last run), then market-wide undervalued names, newly-crossed
+    signals, biggest revised valuations, and a headline for the top movers."""
     th = DEEP_DISCOUNT_THRESHOLD
-    valued = [r for r in rows if r.get("discount") is not None]
+    # Market-wide sections scan S&P constituents only; non-S&P portfolio extras
+    # (foreign/ADR/ETF, tagged sp500=False) appear in the portfolio block above.
+    sp_rows = [r for r in rows if r.get("sp500", True)]
+    valued = [r for r in sp_rows if r.get("discount") is not None]
     undervalued = sorted(
         [r for r in valued if r["discount"] >= th],
         key=lambda r: r["discount"], reverse=True,
@@ -479,13 +548,37 @@ def build_alert_text(report, rows, run_meta, with_news=True):
     lines = [
         f"📊 <b>S&amp;P 500 IV update — {run_meta['session']}</b>",
         f"{run_meta['timestamp_et']}",
+    ]
+
+    # ── Lead with the personal portfolio ─────────────────────────────────────
+    if portfolio_rows is None:
+        portfolio_rows = [r for r in rows if r.get("in_portfolio")]
+    if portfolio_rows:
+        lines += ["", "<b>📁 Your portfolio — IV vs price</b>"]
+        for r in portfolio_rows:
+            tk = r.get("portfolio_display") or r.get("ticker")
+            d = r.get("discount")
+            if d is None:
+                lines.append(f"• {tk}: price-only (no IV)")
+                continue
+            method = "P/B" if r.get("valuation_method") == "pb" else "DCF"
+            tag = ""
+            ps = prior_snap.get(r["ticker"])
+            if ps and ps.get("discount") is not None:
+                dd = d - ps["discount"]
+                if abs(dd) >= 0.01:
+                    tag = f" ({'▲' if dd>0 else '▼'}{abs(dd)*100:.0f}pp)"
+            verdict = "undervalued" if d > 0 else "overvalued"
+            lines.append(f"• {tk}: <b>{d*100:+.0f}%</b>{tag} {verdict} [{method}]")
+
+    lines += [
         "",
         f"{report.get('success','?')} full / {report.get('partial','?')} partial / "
         f"{report.get('no_data_kept','?')} no-data · {report.get('elapsed_seconds','?')}s",
         f"IV coverage {report.get('iv_coverage',0)*100:.0f}% · "
         f"overlay {report.get('sector_coverage',0)*100:.0f}%",
         "",
-        f"<b>{len(undervalued)} names ≥ +{th*100:.0f}% undervalued</b>",
+        f"<b>{len(undervalued)} S&amp;P names ≥ +{th*100:.0f}% undervalued</b>",
     ]
     if undervalued:
         lines += [line(r) for r in undervalued[:6]]
@@ -566,10 +659,12 @@ def _run(args):
         rows = cached["tickers"]
         assumptions = json.loads(ASSUMPTIONS_JSON.read_text()) if ASSUMPTIONS_JSON.exists() else {}
         report = {}
+        portfolio_rows = [r for r in rows if r.get("in_portfolio")]
     else:
-        report, rows, assumptions = run_refresh()
+        report, rows, assumptions, portfolio_rows = run_refresh()
         write_latest_json(rows, run_meta)
         write_assumptions_json(assumptions)
+        write_portfolio_json(portfolio_rows, run_meta)
         append_history(rows, run_meta)
         append_runs_csv(report, run_meta)
 
@@ -591,9 +686,9 @@ def _run(args):
 
     git_commit_and_push(args.session, run_meta["timestamp_et"], push=not args.no_push)
 
-    # P3: Telegram alert with run summary + deep-value signals.
+    # P3: Telegram alert — leads with the portfolio, then market-wide signals.
     if not args.no_telegram and not args.no_refresh:
-        send_telegram(build_alert_text(report, rows, run_meta))
+        send_telegram(build_alert_text(report, rows, run_meta, portfolio_rows=portfolio_rows))
 
 
 if __name__ == "__main__":

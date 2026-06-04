@@ -565,6 +565,54 @@ def fetch_batch(tickers):
     return results, errors
 
 
+def fetch_portfolio_rows(holdings):
+    """Fetch + value an explicit watchlist that may include non-S&P, foreign,
+    or ETF symbols. Returns rows in the SAME shape as LAST_RUN_ROWS, each
+    flagged in_portfolio=True, reusing the identical fetch + valuation path
+    (DCF / P-B routing) so the web recompute and parity gate work unchanged.
+    Foreign names use yfinance suffixes (e.g. 1810.HK, WISE.L); the discount
+    is a currency-invariant ratio (IV and market cap share the listing's
+    currency), so cross-currency holdings compare correctly on discount %.
+    ETFs / negative-or-missing-FCF names get iv_b=None (price only)."""
+    rows = []
+    errors = {}
+    for h in holdings:
+        sym = h["symbol"]
+        data, err = fetch_single_ticker(sym)
+        if err:
+            errors[sym] = err
+        industry_str = data.get("industry") or ""
+        sector_str = data.get("sector") or ""
+        rows.append({
+            "ticker": sym,
+            "company": h.get("display") or sym,
+            "industry": industry_str,
+            "sector": sector_str,
+            "sector_key": match_sector_key(industry_str, sector_str),
+            "valuation_method": data.get("valuation_method"),
+            "price": data.get("price"),
+            "yr_change": data.get("yr_change"),
+            "mcap_b": data.get("mcap_b"),
+            "rev_growth": data.get("rev_growth"),
+            "gross_margin": data.get("gross_margin"),
+            "pe": data.get("pe"),
+            "fcf_m": data.get("fcf_m"),
+            "iv_b": data.get("iv_b"),
+            "discount": data.get("discount"),
+            "p_fcf": data.get("p_fcf"),
+            "fcf": data.get("fcf"),
+            "cash": data.get("cash"),
+            "shares_out": data.get("shares_out"),
+            "bvps": data.get("bvps"),
+            "roe": data.get("roe"),
+            "brk_held": "—",
+            "brk_pos_b": None,
+            "in_portfolio": True,
+            "sp500": False,   # non-constituent (foreign/ADR/ETF) — exclude from S&P scans
+        })
+    return rows, errors
+
+
 # ── Style helpers ─────────────────────────────────────────────────────────────
 GREEN_FONT = Font(name='Arial', size=9, bold=True, color='006100')
 RED_FONT = Font(name='Arial', size=9, bold=True, color='9C0006')
