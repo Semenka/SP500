@@ -1,5 +1,5 @@
 {
-  "generated_at_et": "2026-06-04 19:45:47 EDT",
+  "generated_at_et": "2026-06-04 19:49:53 EDT",
   "session": "manual",
   "holdings": [
     {
@@ -185,8 +185,8 @@
       "gross_margin": 0.13683,
       "pe": 13.473684,
       "fcf_m": null,
-      "iv_b": 0.5641866691368362,
-      "discount": 2.6513211929762774,
+      "iv_b": 0.2498236157921875,
+      "discount": 0.61681640625,
       "p_fcf": null,
       "fcf": null,
       "cash": 2233406976,
@@ -199,10 +199,10 @@
       "sp500": false,
       "model_source": "created (conservative Buffett style)",
       "model_confidence": "low",
-      "model_note": "Loss-making micro-cap; near-zero earnings power. Net cash heavily haircut for China trapped-cash risk. Low confidence.",
+      "model_note": "Loss-making micro-cap, no earnings power \u2192 IV is essentially a net-cash floor (heavily haircut for China trapped-cash risk + unreliable reported cash). A classic net-net; low confidence.",
       "model_currency": "USD",
       "model_type": "fcf_dcf",
-      "iv_per_share": 18.6948,
+      "iv_per_share": 8.2781,
       "portfolio_display": "DouYu"
     },
     {
