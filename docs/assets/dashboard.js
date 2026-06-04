@@ -206,8 +206,41 @@
     document.getElementById('row-count').textContent = sorted.length + ' companies';
   }
 
+  function renderPortfolio() {
+    const port = tickers.filter((t) => t.in_portfolio === true);
+    const section = document.getElementById('portfolio-section');
+    if (!port.length) {
+      if (section) section.style.display = 'none';
+      return;
+    }
+    if (section) section.style.display = '';
+    const html = port
+      .map((d) => {
+        const disc = d.discount_computed;
+        const cls = disc == null ? '' : disc > 0 ? 'pos' : 'neg';
+        const method = d.valuation_method === 'pb' ? 'P/B' : 'DCF';
+        const verdict = disc == null ? 'no IV' : disc > 0 ? 'undervalued' : 'overvalued';
+        const label = d.portfolio_display || d.company || '';
+        return (
+          '<tr>' +
+          '<td><strong>' + (d.ticker || '') + '</strong></td>' +
+          '<td>' + label + '</td>' +
+          '<td class="method">' + (d.iv_b_computed == null ? '—' : method) + '</td>' +
+          '<td class="num">' + (d.price != null ? fmt(d.price, 2) : '—') + '</td>' +
+          '<td class="num">' + fmt(d.mcap_b) + '</td>' +
+          '<td class="num">' + fmt(d.iv_b_computed) + '</td>' +
+          '<td class="num ' + cls + '">' + (disc != null ? fmt(disc * 100) + '%' : '—') + '</td>' +
+          '<td class="' + cls + '">' + verdict + '</td>' +
+          '</tr>'
+        );
+      })
+      .join('');
+    document.getElementById('portfolio-body').innerHTML = html;
+  }
+
   function render() {
     const data = getFiltered();
+    renderPortfolio();
     renderScatter(data);
     renderTable(data);
   }

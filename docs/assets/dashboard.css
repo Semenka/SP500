@@ -29,6 +29,12 @@ header h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; }
 .badge.cov { background: #14301c; border-color: #2ea043; color: #3fb950; }
 td.method { color: var(--muted); font-size: 12px; }
 
+/* My Portfolio section */
+section.portfolio { background: var(--panel); border-bottom: 1px solid var(--border); }
+section.portfolio h2 { color: var(--accent); }
+section.portfolio td.pos { color: var(--pos); font-weight: 600; }
+section.portfolio td.neg { color: var(--neg); }
+
 /* Macro lens panel */
 section.macro {
   background: linear-gradient(180deg, #1a2129 0%, #161c24 100%);
