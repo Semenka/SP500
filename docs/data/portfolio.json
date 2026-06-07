@@ -1,5 +1,5 @@
 {
-  "generated_at_et": "2026-06-07 06:00:11 EDT",
+  "generated_at_et": "2026-06-07 06:03:41 EDT",
   "session": "manual",
   "holdings": [
     {
@@ -592,7 +592,7 @@
       "sector_key": null,
       "valuation_method": "etf",
       "price": 678.0,
-      "yr_change": 0.24600926244152646,
+      "yr_change": 0.24600912267831876,
       "mcap_b": null,
       "rev_growth": null,
       "gross_margin": null,

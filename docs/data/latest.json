@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-06-07T10:00:11+00:00",
-  "generated_at_et": "2026-06-07 06:00:11 EDT",
+  "generated_at_utc": "2026-06-07T10:03:41+00:00",
+  "generated_at_et": "2026-06-07 06:03:41 EDT",
   "session": "manual",
   "tickers": [
     {
@@ -12693,7 +12693,7 @@
       "sector_key": null,
       "valuation_method": "etf",
       "price": 678.0,
-      "yr_change": 0.24600926244152646,
+      "yr_change": 0.24600912267831876,
       "mcap_b": null,
       "rev_growth": null,
       "gross_margin": null,
