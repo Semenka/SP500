@@ -40,9 +40,11 @@ Methodology (addresses the 6 requested upgrades):
 Inputs come from three scratch files produced earlier this session:
   /tmp/dcf_data.json   — 4-5yr revenue/FCF/NI/shares, beta, sector, currency
   /tmp/dcf_deriv.json  — median FCF margins, growth & share-count CAGR, FX
-  /tmp/dcf_mcap.json   — market cap, price, net debt, trailing EPS
-Re-run the data pulls (see git history of this file's companion notebook) to
-refresh, then re-run this builder.
+This builder is self-contained: it fetches the live US Treasury curve, 4-5yr
+financials, share-count history, beta and FX from yfinance itself (cached to
+/tmp for fast re-runs). Just run:  python3 scripts/build_portfolio_models.py
+The RESEARCH overlay below (latest-earnings + announced buybacks) is the
+human-curated layer; refresh it when new quarters are reported.
 """
 import json
 import statistics as st
@@ -52,9 +54,78 @@ REPO = Path(__file__).resolve().parent.parent
 OUT = REPO / "portfolio_models.json"
 AS_OF = "2026-06-07"
 
-DATA = json.load(open("/tmp/dcf_data.json"))
-DERIV = json.load(open("/tmp/dcf_deriv.json"))
-MCAP = json.load(open("/tmp/dcf_mcap.json"))
+TICKERS = ["NVDA", "GOOGL", "BABA", "BIDU", "DOYU", "UNH", "DPZ", "POOL", "LEN",
+           "OXY", "TTE", "AAL", "SYF", "USB", "CRCL", "WISE.L", "1810.HK"]
+
+
+def _fetch_market_data(cache="/tmp/dcf_bundle.json", use_cache=True):
+    """Pull yield curve, FX, and 4-5yr financials for all names from yfinance.
+    Caches to /tmp so repeated builder runs are instant. Delete the cache (or
+    pass use_cache=False) to force a live refresh."""
+    p = Path(cache)
+    if use_cache and p.exists():
+        return json.load(open(p))
+    import warnings
+    warnings.filterwarnings("ignore")
+    import yfinance as yf
+
+    def last(tk):
+        try:
+            h = yf.Ticker(tk).history(period="5d")
+            return float(h["Close"].dropna().iloc[-1])
+        except Exception:
+            return None
+    curve = {"3mo": last("^IRX"), "5yr": last("^FVX"),
+             "10yr": last("^TNX"), "30yr": last("^TYX")}
+    y10, y30 = curve["10yr"], curve["30yr"]
+    y15 = round(y10 + (y30 - y10) * (15 - 10) / (30 - 10), 3) if (y10 and y30) else 4.65
+    usdcny, usdhkd = last("CNY=X"), last("HKD=X")
+    cny_usd = round(1 / usdcny, 4) if usdcny else 0.1478
+    cny_hkd = round(usdhkd / usdcny, 4) if (usdhkd and usdcny) else 1.1577
+
+    def series(df, *keys):
+        if df is None or df.empty:
+            return []
+        for k in keys:
+            if k in df.index:
+                return [round(float(x) / 1e9, 3) for x in df.loc[k].dropna().values][:5]
+        return []
+
+    def cagr(s):
+        s = [x for x in s if x is not None]
+        if len(s) < 2 or s[0] <= 0 or s[-1] <= 0:
+            return None
+        return (s[0] / s[-1]) ** (1 / (len(s) - 1)) - 1
+
+    names, deriv = {}, {}
+    for tk in TICKERS:
+        t = yf.Ticker(tk)
+        info = t.info or {}
+        cf, inc = t.cashflow, t.income_stmt
+        rev = series(inc, "Total Revenue")
+        fcf = series(cf, "Free Cash Flow")
+        ni = series(inc, "Net Income", "Net Income Common Stockholders")
+        dsh = series(inc, "Diluted Average Shares", "Basic Average Shares")
+        names[tk] = {"currency": info.get("currency"), "beta": info.get("beta"),
+                     "sector": info.get("sector"), "rev": rev, "fcf": fcf, "ni": ni,
+                     "price": info.get("currentPrice") or info.get("regularMarketPrice")}
+        margins = [f / r for f, r in zip(fcf, rev) if r and r > 0]
+        deriv[tk] = {"fcf_margin_med": st.median(margins) if margins else None,
+                     "buyback_yield": (lambda c: -c if c is not None else None)(cagr(dsh))}
+        # market data
+        names[tk].update({"mcap": info.get("marketCap"), "debt": info.get("totalDebt"),
+                          "cash": info.get("totalCash"), "eps_ttm": info.get("trailingEps")})
+    bundle = {"curve": curve, "y15": y15, "cny_to_usd": cny_usd, "cny_to_hkd": cny_hkd,
+              "names": names, "deriv": deriv}
+    json.dump(bundle, open(p, "w"), indent=1)
+    return bundle
+
+
+_B = _fetch_market_data()
+DATA = {"names": _B["names"], "curve": _B["curve"], "y15": _B["y15"]}
+DERIV = {"deriv": _B["deriv"], "cny_to_usd": _B["cny_to_usd"], "cny_to_hkd": _B["cny_to_hkd"]}
+MCAP = {tk: {"mcap": v.get("mcap"), "price": v.get("price"), "debt": v.get("debt"),
+             "cash": v.get("cash"), "eps_ttm": v.get("eps_ttm")} for tk, v in _B["names"].items()}
 
 CURVE = DATA["curve"]
 RF15 = DATA.get("y15") or 4.65          # interpolated 15-yr UST, %
