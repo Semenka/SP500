@@ -237,13 +237,17 @@
         const conf = d.model_confidence && d.model_confidence !== 'user'
           ? ' <span class="conf">(' + d.model_confidence + ')</span>' : '';
         const ivps = d.iv_per_share != null ? fmt(d.iv_per_share, 2) : '—';
+        const dr = d.model_discount_rate != null ? fmt(d.model_discount_rate * 100, 1) + '%' : '—';
+        const sheet = d.sheet_iv_per_share != null ? fmt(d.sheet_iv_per_share, 0) : '';
         return (
           '<tr title="' + src.replace(/"/g, "'") + '">' +
           '<td><strong>' + (d.ticker || '') + '</strong></td>' +
           '<td>' + label + '</td>' +
           '<td class="method">' + methodLabel(d) + conf + '</td>' +
+          '<td class="num">' + dr + '</td>' +
           '<td class="num">' + (d.price != null ? fmt(d.price, 2) : '—') + '</td>' +
           '<td class="num">' + ivps + '</td>' +
+          '<td class="num muted2">' + sheet + '</td>' +
           '<td class="num ' + cls + '">' + (disc != null ? fmt(disc * 100) + '%' : '—') + '</td>' +
           '<td class="' + cls + '">' + verdict + '</td>' +
           '</tr>'

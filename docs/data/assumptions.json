@@ -183,5 +183,17 @@
     "terminal_growth": "Sustainable long-run growth from year 15 onward. 2.5% sits at the conservative end of nominal GDP \u2014 should not exceed long-run nominal GDP.",
     "projection_years": "DCF horizon. Buffett-style 15 years; long enough that growth that fades early is correctly penalized.",
     "margin_of_safety": "Buffett's bargain margin \u2014 buy at a discount to fair value. 25% base; the geopolitical overlay adds more in stressed regimes."
-  }
+  },
+  "macro_curve": {
+    "risk_free_15y_pct": 4.652,
+    "yield_curve_pct": {
+      "3mo": 3.625,
+      "5yr": 4.28,
+      "10yr": 4.536,
+      "30yr": 4.999
+    },
+    "equity_risk_premium_pct": 5.0,
+    "buffett_discount_floor_pct": 9.0
+  },
+  "models_methodology": "v2"
 }

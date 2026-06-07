@@ -36,6 +36,7 @@ section.portfolio td.pos { color: var(--pos); font-weight: 600; }
 section.portfolio td.neg { color: var(--neg); }
 section.portfolio td.method { font-size: 11px; }
 section.portfolio .conf { color: #d29922; }
+td.muted2 { color: var(--muted); font-size: 11px; }
 
 /* Macro lens panel */
 section.macro {
