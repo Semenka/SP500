@@ -100,7 +100,20 @@ Outputs: `docs/data/portfolio.json` (the holdings subset), a "My Portfolio" tabl
 - **`fcf_dcf`** — 15-yr mid-year per-share owner-earnings DCF, 3-phase growth (per-share growth already folds in the buyback yield). Reproduces the user's Google-Sheet models within <0.5%.
 - **`earnings_multiple`** — normalized EPS × justified P/E (+ net cash/share). Used for banks (USB, SYF) and high-leverage names (AAL) where a 15-yr FCF DCF with full net-debt subtraction is the wrong tool.
 
-7 models come from the owner's Google Sheet (DPZ, UNH, 1810.HK, LEN, POOL, TTE, NVDA); 10 were created this session with conservative macro (GOOGL, OXY, CRCL, BABA, BIDU, WISE.L, DOYU, AAL, SYF, USB); VOO is an ETF (no single-name DCF). All inputs are per-share in the listing currency, so no runtime FX is needed. Model IVs are fixed (a fundamental value doesn't move with the macro sliders) and recomputed only when you edit the spec. Regenerate with `python3 scripts/build_portfolio_models.py`. Each non-sheet model carries a `confidence` flag (low/med) and a `note` explaining its assumptions.
+All inputs are per-share in the listing currency, so no runtime FX is needed. Model IVs are fixed (a fundamental value doesn't move with the macro sliders) and recomputed only when you edit the spec. Regenerate with `python3 scripts/build_portfolio_models.py`. Each model carries a `confidence` flag and a `note` with the latest-earnings detail.
+
+#### Methodology v2 (world-class, data-driven)
+
+`build_portfolio_models.py` derives every input from data rather than hand-set guesses:
+
+1. **Growth** — conservative MIN of each name's multi-year history and a macro-aware sector ceiling, nudged by the latest quarter's momentum/guidance; 3-phase decay to a conservative terminal.
+2. **Discount rate** — from the live US Treasury curve, tenor-matched to the 15-yr horizon: `risk_free(~15y, interpolated 10y↔30y) + clamp(beta,0.7,1.6)×ERP(5%)`, floored at a 9% Buffett hurdle, plus a sector risk premium (China ADR +1.5, energy +0.5, airline +1.5, recent-IPO +2.0). Recomputed when the curve is refreshed.
+3. **FCF over net income** — owner earnings = median historical FCF margin × latest revenue (smooths capex spikes / cyclical revenue). Exceptions: banks (no FCF) → normalized EPS × justified P/E; Wise (float-inflated OCF) → net income; DouYu → net-cash floor.
+4. **Buyback / issuance** — base = historical diluted-share-count CAGR, overridden by authorizations announced at the latest earnings (NVDA $118B, SYF $6.5B, Xiaomi HK$20B new, OXY paused, AAL none/dilutive, CRCL post-IPO dilution); folded into per-share growth.
+5. **Latest earnings** — every model's `note` carries the most recent quarter (rev/EPS YoY, guidance, buyback) from primary sources, and those facts set the growth/buyback/terminal.
+6. **Conservative** — hypergrowth capped, 9% discount floor, terminal ≤3% (0% for depleting energy), low-confidence flags, and the original Google-Sheet IV kept as a `sheet_iv_per_share` cross-reference.
+
+The `portfolio_models.json` header records the live `macro` block (yield curve, RF15, ERP, floor) used. The dashboard shows each holding's discount rate, IV/share, sheet-IV reference, and upside; hover a row for the earnings note.
 
 ## First-time setup
 

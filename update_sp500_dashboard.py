@@ -594,6 +594,9 @@ def model_iv_per_share(spec):
         return pv + pv_tv - spec.get("net_debt_ps", 0.0)
     if mtype == "earnings_multiple":
         return spec["normalized_eps"] * spec["target_pe"] + spec.get("net_cash_ps", 0.0)
+    if mtype == "netcash":
+        # IV is a precomputed net-cash floor (data too thin to recompute live).
+        return spec.get("iv_per_share")
     return None
 
 
@@ -671,6 +674,9 @@ def apply_model_to_row(row, spec):
     row["model_confidence"] = spec.get("confidence")
     row["model_note"] = spec.get("note")
     row["model_currency"] = spec.get("currency")
+    row["model_discount_rate"] = spec.get("discount_rate") or spec.get("discount_rate_ref")
+    row["model_terminal_growth"] = spec.get("terminal_growth")
+    row["sheet_iv_per_share"] = spec.get("sheet_iv_per_share")
     if spec.get("model_type") == "none":
         row["valuation_method"] = "etf"
         row["iv_per_share"] = None

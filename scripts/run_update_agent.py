@@ -52,6 +52,7 @@ INDEX_HTML = DOCS_DIR / "index.html"
 PARITY_JS = REPO_ROOT / "scripts" / "parity_check.js"
 PORTFOLIO_CONFIG = REPO_ROOT / "portfolio.json"
 PORTFOLIO_JSON = DATA_DIR / "portfolio.json"
+PORTFOLIO_MODELS_FILE = REPO_ROOT / "portfolio_models.json"
 
 # Telegram (reuses the OpenClaw "default" bot). Override via env if desired.
 OPENCLAW_CONFIG = Path.home() / ".openclaw" / "openclaw.json"
@@ -248,6 +249,13 @@ def run_refresh():
         "slider_guidance": ud.SLIDER_GUIDANCE,
         "dcf_input_notes": ud.DCF_INPUT_NOTES,
     }
+    # Surface the portfolio-model macro (live yield curve etc.) for the header.
+    try:
+        pm = json.loads(PORTFOLIO_MODELS_FILE.read_text())
+        assumptions["macro_curve"] = pm.get("macro")
+        assumptions["models_methodology"] = pm.get("methodology_version")
+    except Exception:
+        pass
     return report, rows, assumptions, portfolio_rows
 
 
