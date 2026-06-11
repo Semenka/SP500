@@ -24,8 +24,16 @@ alert to Telegram `148594943` after 1 consecutive error.
 
 | Job name | id | cron (tz America/New_York) |
 |---|---|---|
-| `sp500-iv-preopen`  | `2b62e4a6-ed22-4b5c-a037-5785162c9534` | `0 9 * * 1-5` |
-| `sp500-iv-preclose` | `70d1fe9e-8c1d-46f5-afcf-2f2c4eb084e2` | `30 15 * * 1-5` |
+| `sp500-iv-preopen`  | `f64a33b4-eb75-472a-a1e0-afa35817caa8` | `0 9 * * 1-5` |
+| `sp500-iv-preclose` | `8b88f767-a9a3-4b20-be66-85a48429955c` | `30 15 * * 1-5` |
+
+⚠️ **The cron store can be wiped by OpenClaw upgrades/clobbers** — this happened
+on ~2026-06-08 (4 trading days missed silently; jobs re-registered 2026-06-11
+with the IDs above, timeout raised to 900s for the in-loop model refresh).
+**Heartbeat rule:** you should receive a Telegram digest by ~09:05 ET and
+~15:35 ET every trading day. If one is missing, run
+`openclaw cron list | grep sp500` — if the jobs are gone, re-add them with the
+commands in this file's history (`git log -p scripts/openclaw_agent.md`).
 
 Manage them:
 
