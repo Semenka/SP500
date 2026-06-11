@@ -195,5 +195,5 @@
     "equity_risk_premium_pct": 5.0,
     "buffett_discount_floor_pct": 9.0
   },
-  "models_methodology": "v2"
+  "models_methodology": "v2.1"
 }
