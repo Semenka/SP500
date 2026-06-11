@@ -220,8 +220,11 @@
     }
     if (section) section.style.display = '';
     const methodLabel = (d) => {
-      if (d.valuation_method === 'model')
-        return d.model_type === 'earnings_multiple' ? 'Model · EPS×PE' : 'Model · DCF';
+      if (d.valuation_method === 'model') {
+        if (d.model_type === 'earnings_multiple') return 'Model · EPS×PE';
+        if (d.model_type === 'netcash') return 'Model · net-cash';
+        return 'Model · DCF';
+      }
       if (d.valuation_method === 'etf') return 'ETF';
       if (d.valuation_method === 'pb') return 'P/B';
       if (d.iv_b_computed == null) return '—';

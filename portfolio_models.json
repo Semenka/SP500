@@ -1,7 +1,8 @@
 {
   "_comment": "World-class data-driven Buffett-conservative DCF models (v2). Discount from live US yield curve + beta + sector (9% floor); FCF-margin-normalized owner earnings; sector+earnings-driven 3-phase growth; buyback yield from history + announced authorizations; latest earnings in each note. fcf_dcf = 15-yr mid-year per-share DCF; earnings_multiple for banks/airline; netcash for loss-making net-cash names. Edit any input; IV updates next run.",
-  "as_of": "2026-06-07",
-  "methodology_version": "v2",
+  "as_of": "2026-06-11",
+  "research_overlay_as_of": "2026-06-07",
+  "methodology_version": "v2.1",
   "macro": {
     "risk_free_15y_pct": 4.585,
     "yield_curve_pct": {
@@ -19,7 +20,7 @@
       "model_type": "fcf_dcf",
       "currency": "HKD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 1.3764,
       "growth_ps": [
@@ -57,7 +58,7 @@
       "model_type": "earnings_multiple",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "low",
       "normalized_eps": 1.0,
       "target_pe": 7.0,
@@ -72,7 +73,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 7.4579,
       "growth_ps": [
@@ -110,7 +111,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 6.753,
       "growth_ps": [
@@ -148,7 +149,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "low",
       "fcf_ps0": 1.2883,
       "growth_ps": [
@@ -186,7 +187,7 @@
       "model_type": "netcash",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "low",
       "iv_per_share": 6.0,
       "note": "Q1'26: rev -13% (secular decline) but swung to small profit on cost cuts. A net-net (cash > market cap) but yfinance's cash figure is unreliable for this micro-cap; IV manually set to a conservative ~$6/ADS net-cash floor (heavy haircut for China trapped-cash + episodic special dividends as the only return mechanism). Low confidence."
@@ -196,7 +197,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "high",
       "fcf_ps0": 16.1202,
       "growth_ps": [
@@ -234,7 +235,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 6.9379,
       "growth_ps": [
@@ -272,7 +273,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 6.4962,
       "growth_ps": [
@@ -310,7 +311,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 3.9728,
       "growth_ps": [
@@ -348,7 +349,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 5.6511,
       "growth_ps": [
@@ -386,7 +387,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "high",
       "fcf_ps0": 13.3761,
       "growth_ps": [
@@ -424,7 +425,7 @@
       "model_type": "earnings_multiple",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "normalized_eps": 9.3,
       "target_pe": 9.0,
@@ -439,7 +440,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "high",
       "fcf_ps0": 7.6497,
       "growth_ps": [
@@ -478,7 +479,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 29.7758,
       "growth_ps": [
@@ -516,7 +517,7 @@
       "model_type": "earnings_multiple",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "normalized_eps": 4.5,
       "target_pe": 11.0,
@@ -531,7 +532,7 @@
       "model_type": "none",
       "currency": "USD",
       "source": "n/a",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "n/a",
       "note": "S&P 500 ETF \u2014 price ~ NAV; no single-name DCF."
     },
@@ -540,7 +541,7 @@
       "model_type": "fcf_dcf",
       "currency": "GBp",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-06-07",
+      "as_of": "2026-06-11",
       "confidence": "med",
       "fcf_ps0": 41.689,
       "growth_ps": [
