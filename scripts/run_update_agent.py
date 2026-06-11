@@ -222,9 +222,30 @@ def write_portfolio_json(portfolio_rows, run_meta):
     }, indent=2, default=str))
 
 
+def refresh_models():
+    """Regenerate portfolio_models.json with live data (yield curve, analyst
+    growth estimates, financials) so intrinsic values track the macro twice a
+    day. Fail-safe: on any error the committed models remain in place."""
+    builder = REPO_ROOT / "scripts" / "build_portfolio_models.py"
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(builder), "--refresh"],
+            cwd=REPO_ROOT, capture_output=True, text=True, timeout=600,
+        )
+        if proc.returncode == 0:
+            line = (proc.stdout or "").strip().splitlines()
+            print(f"models: refreshed ({line[0] if line else 'ok'})")
+        else:
+            print(f"models: refresh FAILED (keeping committed models): "
+                  f"{(proc.stderr or '').strip()[:300]}")
+    except Exception as e:
+        print(f"models: refresh error (keeping committed models): {e}")
+
+
 def run_refresh():
     import update_sp500_dashboard as ud
 
+    refresh_models()
     report = ud.update_dashboard()
     rows = ud.get_last_run_rows()
     rows, portfolio_rows = attach_portfolio(rows)
@@ -337,7 +358,7 @@ def git_commit_and_push(session_label: str, et_ts: str, push: bool):
             ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=False
         )
 
-    git("add", "docs", "Portfolio.xlsx")
+    git("add", "docs", "Portfolio.xlsx", "portfolio_models.json")
     status = git("status", "--porcelain")
     if not status.stdout.strip():
         print("No changes to commit.")
@@ -571,7 +592,12 @@ def build_alert_text(report, rows, run_meta, with_news=True, portfolio_rows=None
         def method_tag(r):
             vm = r.get("valuation_method")
             if vm == "model":
-                return "model·EPS×PE" if r.get("model_type") == "earnings_multiple" else "model·DCF"
+                mt = r.get("model_type")
+                if mt == "earnings_multiple":
+                    return "model·EPS×PE"
+                if mt == "netcash":
+                    return "model·net-cash"
+                return "model·DCF"
             if vm == "etf":
                 return "ETF"
             if vm == "pb":
@@ -592,7 +618,9 @@ def build_alert_text(report, rows, run_meta, with_news=True, portfolio_rows=None
             verdict = "BUY" if d > 0.25 else "FAIR" if d > -0.10 else "overvalued"
             conf = r.get("model_confidence")
             cflag = f" ⚠{conf}" if conf in ("low",) else ""
-            lines.append(f"• {tk}: <b>{d*100:+.0f}%</b>{tag} {verdict} [{method_tag(r)}{cflag}]")
+            gm = r.get("model_growth_y1_5")
+            gtag = f", g{gm*100:.0f}%" if gm is not None else ""
+            lines.append(f"• {tk}: <b>{d*100:+.0f}%</b>{tag} {verdict} [{method_tag(r)}{gtag}{cflag}]")
 
     lines += [
         "",

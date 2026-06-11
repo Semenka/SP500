@@ -50,15 +50,18 @@ import json
 import statistics as st
 from pathlib import Path
 
+import datetime as _dt
+
 REPO = Path(__file__).resolve().parent.parent
 OUT = REPO / "portfolio_models.json"
-AS_OF = "2026-06-07"
+AS_OF = _dt.date.today().isoformat()      # stamped at each refresh
+RESEARCH_AS_OF = "2026-06-07"             # when the earnings overlay was last curated
 
 TICKERS = ["NVDA", "GOOGL", "BABA", "BIDU", "DOYU", "UNH", "DPZ", "POOL", "LEN",
            "OXY", "TTE", "AAL", "SYF", "USB", "CRCL", "WISE.L", "1810.HK"]
 
 
-def _fetch_market_data(cache="/tmp/dcf_bundle.json", use_cache=True):
+def _fetch_market_data(cache="/tmp/dcf_bundle_v3.json", use_cache=True):
     """Pull yield curve, FX, and 4-5yr financials for all names from yfinance.
     Caches to /tmp so repeated builder runs are instant. Delete the cache (or
     pass use_cache=False) to force a live refresh."""
@@ -97,6 +100,30 @@ def _fetch_market_data(cache="/tmp/dcf_bundle.json", use_cache=True):
             return None
         return (s[0] / s[-1]) ** (1 / (len(s) - 1)) - 1
 
+    def analyst_growth(t):
+        """Forward growth from analyst consensus: mean of current+next-FY
+        revenue growth, and next-FY earnings growth. Best-effort, never raises."""
+        out = {"rev_fwd": None, "earn_fwd": None}
+        try:
+            re = t.revenue_estimate
+            if re is not None and not re.empty and "growth" in re.columns:
+                vals = [re.loc[i, "growth"] for i in ("0y", "+1y") if i in re.index]
+                vals = [float(v) for v in vals if v == v]  # drop NaN
+                if vals:
+                    out["rev_fwd"] = round(sum(vals) / len(vals), 4)
+        except Exception:
+            pass
+        try:
+            ge = t.growth_estimates
+            if ge is not None and not ge.empty and "+1y" in ge.index:
+                col = "stockTrend" if "stockTrend" in ge.columns else ge.columns[0]
+                v = ge.loc["+1y", col]
+                if v == v:
+                    out["earn_fwd"] = round(float(v), 4)
+        except Exception:
+            pass
+        return out
+
     names, deriv = {}, {}
     for tk in TICKERS:
         t = yf.Ticker(tk)
@@ -108,7 +135,8 @@ def _fetch_market_data(cache="/tmp/dcf_bundle.json", use_cache=True):
         dsh = series(inc, "Diluted Average Shares", "Basic Average Shares")
         names[tk] = {"currency": info.get("currency"), "beta": info.get("beta"),
                      "sector": info.get("sector"), "rev": rev, "fcf": fcf, "ni": ni,
-                     "price": info.get("currentPrice") or info.get("regularMarketPrice")}
+                     "price": info.get("currentPrice") or info.get("regularMarketPrice"),
+                     "analyst": analyst_growth(t)}
         margins = [f / r for f, r in zip(fcf, rev) if r and r > 0]
         deriv[tk] = {"fcf_margin_med": st.median(margins) if margins else None,
                      "buyback_yield": (lambda c: -c if c is not None else None)(cagr(dsh))}
@@ -121,7 +149,8 @@ def _fetch_market_data(cache="/tmp/dcf_bundle.json", use_cache=True):
     return bundle
 
 
-_B = _fetch_market_data()
+import sys as _sys
+_B = _fetch_market_data(use_cache="--refresh" not in _sys.argv)
 DATA = {"names": _B["names"], "curve": _B["curve"], "y15": _B["y15"]}
 DERIV = {"deriv": _B["deriv"], "cny_to_usd": _B["cny_to_usd"], "cny_to_hkd": _B["cny_to_hkd"]}
 MCAP = {tk: {"mcap": v.get("mcap"), "price": v.get("price"), "debt": v.get("debt"),
@@ -216,6 +245,29 @@ def discount_for(tk, beta, sector, extra_risk):
     coe = RF15 + b * ERP
     disc = max(coe, BUFFETT_FLOOR) + SECTOR_RISK.get(sector, 0.0) + extra_risk
     return round(disc / 100.0, 4)
+
+
+def analyst_guard(curated_g, analyst):
+    """Conservative growth guard-rail (the 'area of attention'): the analyst
+    forward consensus can only LOWER a curated growth assumption, never raise
+    it. Signal = max(fwd revenue growth, fwd earnings growth) — using the max
+    means the guard only bites when BOTH lines are weak (genuine pessimism,
+    not divestiture/accounting noise in one line). The signal is haircut 25%
+    and clamped to [-5%, +25%]; if it sits below the curated growth, final
+    growth is pulled halfway down toward it."""
+    rev = analyst.get("rev_fwd") if analyst else None
+    earn = analyst.get("earn_fwd") if analyst else None
+    sigs = [s for s in (rev, earn) if s is not None]
+    if not sigs:
+        return curated_g, None
+    signal = max(sigs)
+    capped = min(max(signal * 0.75, -0.05), 0.25)
+    if capped >= curated_g:
+        return curated_g, {"rev_fwd": rev, "earn_fwd": earn, "signal_capped": round(capped, 4),
+                           "applied": False}
+    final = round(0.5 * curated_g + 0.5 * capped, 4)
+    return final, {"rev_fwd": rev, "earn_fwd": earn, "signal_capped": round(capped, 4),
+                   "applied": True, "curated_g": curated_g}
 
 
 def three_phase(g1, tg):
@@ -313,8 +365,8 @@ def main():
         nd_total = (mc.get("debt", 0) or 0) - (mc.get("cash", 0) or 0)
         net_debt_ps = nd_total / shares_econ * per_share_scale
 
-        # growth: conservative min(history, sector ceiling), use research g
-        g_fcf = r["g"]
+        # growth: curated (sector+macro+earnings) with analyst downside guard
+        g_fcf, guard = analyst_guard(r["g"], d.get("analyst"))
         bb = r["bb"]
         g_ps1 = (1 + g_fcf) * (1 + bb) - 1            # per-share incl buyback
         g_ps = three_phase(g_ps1, r["tg"])
@@ -334,7 +386,8 @@ def main():
                 "owner_earnings_total_reporting": round(oe, 2),
                 "fx_reporting_to_listing": round(fx, 4),
                 "shares_econ_m": round(shares_econ / 1e6, 1),
-                "fcf_growth_y1_5": g_fcf, "buyback_yield": bb,
+                "fcf_growth_y1_5": g_fcf, "curated_growth": r["g"],
+                "analyst_guard": guard, "buyback_yield": bb,
                 "beta": d.get("beta"), "risk_free_15y_pct": RF15,
                 "discount_components": f"max(rf{RF15}+beta*ERP{ERP}, floor{BUFFETT_FLOOR}) + risk{r.get('risk',0)}",
             },
@@ -351,7 +404,8 @@ def main():
                     "fcf_dcf = 15-yr mid-year per-share DCF; earnings_multiple for banks/airline; "
                     "netcash for loss-making net-cash names. Edit any input; IV updates next run.",
         "as_of": AS_OF,
-        "methodology_version": "v2",
+        "research_overlay_as_of": RESEARCH_AS_OF,
+        "methodology_version": "v2.1",
         "macro": {"risk_free_15y_pct": RF15, "yield_curve_pct": CURVE,
                   "equity_risk_premium_pct": ERP, "buffett_discount_floor_pct": BUFFETT_FLOOR},
         "models": models,

@@ -677,6 +677,9 @@ def apply_model_to_row(row, spec):
     row["model_discount_rate"] = spec.get("discount_rate") or spec.get("discount_rate_ref")
     row["model_terminal_growth"] = spec.get("terminal_growth")
     row["sheet_iv_per_share"] = spec.get("sheet_iv_per_share")
+    inputs = spec.get("inputs") or {}
+    row["model_growth_y1_5"] = inputs.get("fcf_growth_y1_5")
+    row["model_analyst_guard"] = inputs.get("analyst_guard")
     if spec.get("model_type") == "none":
         row["valuation_method"] = "etf"
         row["iv_per_share"] = None
