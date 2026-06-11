@@ -239,11 +239,16 @@
         const ivps = d.iv_per_share != null ? fmt(d.iv_per_share, 2) : '—';
         const dr = d.model_discount_rate != null ? fmt(d.model_discount_rate * 100, 1) + '%' : '—';
         const sheet = d.sheet_iv_per_share != null ? fmt(d.sheet_iv_per_share, 0) : '';
+        const guard = d.model_analyst_guard;
+        const gTag = d.model_growth_y1_5 != null
+          ? fmt(d.model_growth_y1_5 * 100, 1) + '%' + (guard && guard.applied ? '<span class="conf">▾</span>' : '')
+          : '—';
         return (
           '<tr title="' + src.replace(/"/g, "'") + '">' +
           '<td><strong>' + (d.ticker || '') + '</strong></td>' +
           '<td>' + label + '</td>' +
           '<td class="method">' + methodLabel(d) + conf + '</td>' +
+          '<td class="num">' + gTag + '</td>' +
           '<td class="num">' + dr + '</td>' +
           '<td class="num">' + (d.price != null ? fmt(d.price, 2) : '—') + '</td>' +
           '<td class="num">' + ivps + '</td>' +
