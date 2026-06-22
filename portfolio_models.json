@@ -207,7 +207,7 @@
       ],
       "discount_rate": 0.0947,
       "terminal_growth": 0.025,
-      "net_debt_ps": 147.4016,
+      "net_debt_ps": 147.4015,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.109 x latest rev",
         "owner_earnings_total_reporting": 0.54,
@@ -237,7 +237,7 @@
       "source": "created v2 (data-driven, Buffett-conservative)",
       "as_of": "2026-06-22",
       "confidence": "med",
-      "fcf_ps0": 6.9341,
+      "fcf_ps0": 6.9332,
       "growth_ps": [
         0.1162,
         0.0888,
@@ -245,12 +245,12 @@
       ],
       "discount_rate": 0.108,
       "terminal_growth": 0.025,
-      "net_debt_ps": -2.5377,
+      "net_debt_ps": -2.5374,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.21 x latest rev",
         "owner_earnings_total_reporting": 84.61,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 12201.7,
+        "shares_econ_m": 12203.3,
         "fcf_growth_y1_5": 0.09,
         "curated_growth": 0.09,
         "analyst_guard": {
@@ -264,7 +264,7 @@
         "risk_free_15y_pct": 4.618,
         "discount_components": "max(rf4.618+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 175.52,
+      "iv_per_share": 175.49,
       "sheet_iv_per_share": null,
       "note": "Q1'26: rev +22%, Cloud +63%, EPS +82%; 2026 capex $180-190B pressures FCF; ~$70B annual buyback, shares -13% since 2019."
     },
@@ -313,7 +313,7 @@
       "source": "created v2 (data-driven, Buffett-conservative)",
       "as_of": "2026-06-22",
       "confidence": "med",
-      "fcf_ps0": 3.9729,
+      "fcf_ps0": 3.9728,
       "growth_ps": [
         0.1672,
         0.1261,
@@ -321,12 +321,12 @@
       ],
       "discount_rate": 0.1262,
       "terminal_growth": 0.03,
-      "net_debt_ps": -1.6663,
+      "net_debt_ps": -1.6662,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.446 x latest rev",
         "owner_earnings_total_reporting": 96.23,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 24220.4,
+        "shares_econ_m": 24221.0,
         "fcf_growth_y1_5": 0.15,
         "curated_growth": 0.15,
         "analyst_guard": {
