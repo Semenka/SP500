@@ -1,15 +1,15 @@
 {
   "_comment": "World-class data-driven Buffett-conservative DCF models (v2). Discount from live US yield curve + beta + sector (9% floor); FCF-margin-normalized owner earnings; sector+earnings-driven 3-phase growth; buyback yield from history + announced authorizations; latest earnings in each note. fcf_dcf = 15-yr mid-year per-share DCF; earnings_multiple for banks/airline; netcash for loss-making net-cash names. Edit any input; IV updates next run.",
-  "as_of": "2026-07-02",
+  "as_of": "2026-07-06",
   "research_overlay_as_of": "2026-06-07",
   "methodology_version": "v2.1",
   "macro": {
-    "risk_free_15y_pct": 4.61,
+    "risk_free_15y_pct": 4.608,
     "yield_curve_pct": {
-      "3mo": 3.6679999828338623,
-      "5yr": 4.230000019073486,
-      "10yr": 4.484999656677246,
-      "30yr": 4.984999656677246
+      "3mo": 3.690000057220459,
+      "5yr": 4.210999965667725,
+      "10yr": 4.479000091552734,
+      "30yr": 4.993000030517578
     },
     "equity_risk_premium_pct": 5.0,
     "buffett_discount_floor_pct": 9.0
@@ -20,9 +20,9 @@
       "model_type": "fcf_dcf",
       "currency": "HKD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
-      "fcf_ps0": 1.3795,
+      "fcf_ps0": 1.3778,
       "growth_ps": [
         0.1016,
         0.0801,
@@ -34,7 +34,7 @@
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.067 x latest rev",
         "owner_earnings_total_reporting": 30.68,
-        "fx_reporting_to_listing": 1.1573,
+        "fx_reporting_to_listing": 1.1559,
         "shares_econ_m": 25739.6,
         "fcf_growth_y1_5": 0.08,
         "curated_growth": 0.08,
@@ -45,11 +45,11 @@
           "applied": false
         },
         "buyback_yield": 0.02,
-        "beta": 0.684,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk1.5"
+        "beta": 0.685,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk1.5"
       },
-      "iv_per_share": 36.03,
+      "iv_per_share": 35.99,
       "sheet_iv_per_share": 40.46,
       "note": "Q1'26: rev -10.9% (memory-chip cost shock), adj profit -43%; EV deliveries 80.9k (+6.6%) but EV segment still -RMB3.1B op loss. NEW: HK$20B buyback (reverses old 'no buyback'); no div. EV growth vs near-term margin fragility."
     },
@@ -58,12 +58,12 @@
       "model_type": "earnings_multiple",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "low",
       "normalized_eps": 1.0,
       "target_pe": 7.0,
       "net_cash_ps": 0.0,
-      "discount_rate_ref": 0.1293,
+      "discount_rate_ref": 0.127,
       "iv_per_share": 7.0,
       "sheet_iv_per_share": null,
       "note": "Q1'26: record rev +10.8% but adj loss $(0.40); FY26 adj EPS guide $(0.40)-$1.10 (mid ~$0.35). NO buyback til ~2027 (debt $34.7B, hitting <$35B a year early); >$4B fuel headwind from high oil. Normalized mid-cycle EPS x7 (cyclical, leveraged); equity is partly a deleveraging option."
@@ -73,9 +73,9 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
-      "fcf_ps0": 7.4565,
+      "fcf_ps0": 7.4464,
       "growth_ps": [
         0.0706,
         0.0584,
@@ -87,7 +87,7 @@
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.118 x latest rev",
         "owner_earnings_total_reporting": 121.22,
-        "fx_reporting_to_listing": 0.1476,
+        "fx_reporting_to_listing": 0.1474,
         "shares_econ_m": 2399.6,
         "fcf_growth_y1_5": 0.06,
         "curated_growth": 0.06,
@@ -98,11 +98,11 @@
           "applied": false
         },
         "buyback_yield": 0.01,
-        "beta": 0.46,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk1.5"
+        "beta": 0.496,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk1.5"
       },
-      "iv_per_share": 159.09,
+      "iv_per_share": 158.89,
       "sheet_iv_per_share": null,
       "note": "Mar-qtr FY26: rev +21%, Cloud +38%, but profit ~wiped by AI/commerce investment; $19.1B buyback remaining (pace slowed ~$1B/yr); $1.05/ADS div. Margins haircut."
     },
@@ -111,9 +111,9 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
-      "fcf_ps0": 6.753,
+      "fcf_ps0": 6.7438,
       "growth_ps": [
         0.0403,
         0.0342,
@@ -125,7 +125,7 @@
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.121 x latest rev",
         "owner_earnings_total_reporting": 15.57,
-        "fx_reporting_to_listing": 0.1476,
+        "fx_reporting_to_listing": 0.1474,
         "shares_econ_m": 340.3,
         "fcf_growth_y1_5": 0.03,
         "curated_growth": 0.03,
@@ -136,11 +136,11 @@
           "applied": false
         },
         "buyback_yield": 0.01,
-        "beta": 0.534,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk1.5"
+        "beta": 0.559,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk1.5"
       },
-      "iv_per_share": 165.02,
+      "iv_per_share": 164.89,
       "sheet_iv_per_share": null,
       "note": "Q1'26: core +2%, AI +49% (52% of core) but net income -55%; ~$40B cash, $5B buyback (light pace). Value rests on cash + AI optionality, ad in structural decline."
     },
@@ -149,7 +149,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "low",
       "fcf_ps0": 1.2883,
       "growth_ps": [
@@ -169,14 +169,14 @@
         "curated_growth": 0.12,
         "analyst_guard": {
           "rev_fwd": 0.2587,
-          "earn_fwd": 0.7785,
+          "earn_fwd": 0.8006,
           "signal_capped": 0.25,
           "applied": false
         },
         "buyback_yield": -0.02,
         "beta": null,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk2.0"
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk2.0"
       },
       "iv_per_share": 31.76,
       "sheet_iv_per_share": null,
@@ -187,7 +187,7 @@
       "model_type": "netcash",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "low",
       "iv_per_share": 6.0,
       "note": "Q1'26: rev -13% (secular decline) but swung to small profit on cost cuts. A net-net (cash > market cap) but yfinance's cash figure is unreliable for this micro-cap; IV manually set to a conservative ~$6/ADS net-cash floor (heavy haircut for China trapped-cash + episodic special dividends as the only return mechanism). Low confidence."
@@ -197,7 +197,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "high",
       "fcf_ps0": 16.1202,
       "growth_ps": [
@@ -205,7 +205,7 @@
         0.0609,
         0.0455
       ],
-      "discount_rate": 0.0946,
+      "discount_rate": 0.0948,
       "terminal_growth": 0.025,
       "net_debt_ps": 147.4015,
       "inputs": {
@@ -217,16 +217,16 @@
         "curated_growth": 0.045,
         "analyst_guard": {
           "rev_fwd": 0.0445,
-          "earn_fwd": 0.0905,
-          "signal_capped": 0.0679,
+          "earn_fwd": 0.0904,
+          "signal_capped": 0.0678,
           "applied": false
         },
         "buyback_yield": 0.03,
-        "beta": 0.971,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.0"
+        "beta": 0.975,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 216.53,
+      "iv_per_share": 215.41,
       "sheet_iv_per_share": 363.68,
       "note": "Q1'26: rev +3.5%, US SSS +0.9% (slowing), EPS -4.6% miss; NEW $1B buyback ($1.29B remaining ~7% cap), 2.5% div. NOTE: Berkshire FULLY EXITED DPZ in Q1'26."
     },
@@ -235,36 +235,36 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
-      "fcf_ps0": 6.9336,
+      "fcf_ps0": 6.9338,
       "growth_ps": [
         0.1162,
         0.0888,
         0.0615
       ],
-      "discount_rate": 0.108,
+      "discount_rate": 0.1084,
       "terminal_growth": 0.025,
-      "net_debt_ps": -2.5375,
+      "net_debt_ps": -2.5376,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.21 x latest rev",
         "owner_earnings_total_reporting": 84.61,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 12202.6,
+        "shares_econ_m": 12202.2,
         "fcf_growth_y1_5": 0.09,
         "curated_growth": 0.09,
         "analyst_guard": {
-          "rev_fwd": 0.2021,
-          "earn_fwd": 0.0245,
-          "signal_capped": 0.1516,
+          "rev_fwd": 0.2019,
+          "earn_fwd": 0.0235,
+          "signal_capped": 0.1514,
           "applied": false
         },
         "buyback_yield": 0.024,
-        "beta": 1.237,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.0"
+        "beta": 1.247,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 175.5,
+      "iv_per_share": 174.55,
       "sheet_iv_per_share": null,
       "note": "Q1'26: rev +22%, Cloud +63%, EPS +82%; 2026 capex $180-190B pressures FCF; ~$70B annual buyback, shares -13% since 2019."
     },
@@ -273,7 +273,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
       "fcf_ps0": 6.6419,
       "growth_ps": [
@@ -281,7 +281,7 @@
         0.0631,
         0.0446
       ],
-      "discount_rate": 0.1161,
+      "discount_rate": 0.1158,
       "terminal_growth": 0.02,
       "net_debt_ps": 18.2299,
       "inputs": {
@@ -298,11 +298,11 @@
           "applied": false
         },
         "buyback_yield": 0.04,
-        "beta": 1.4,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.0"
+        "beta": 1.394,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 94.91,
+      "iv_per_share": 95.3,
       "sheet_iv_per_share": 143.21,
       "note": "Q1 FY26: rev -13%, EPS -53% (mgmt calls it the margin BOTTOM); +$5B buyback authorized (~23% of shares retired over program), 1.6% div. Cyclical trough; owner-earnings overridden to a conservative cycle-avg ~$1.6B (mechanical margin includes the 2023-24 housing boom and overstates trough-normal)."
     },
@@ -311,9 +311,9 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
-      "fcf_ps0": 3.9736,
+      "fcf_ps0": 3.9729,
       "growth_ps": [
         0.1672,
         0.1261,
@@ -321,12 +321,12 @@
       ],
       "discount_rate": 0.1261,
       "terminal_growth": 0.03,
-      "net_debt_ps": -1.6665,
+      "net_debt_ps": -1.6663,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.446 x latest rev",
         "owner_earnings_total_reporting": 96.23,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 24216.6,
+        "shares_econ_m": 24220.4,
         "fcf_growth_y1_5": 0.15,
         "curated_growth": 0.15,
         "analyst_guard": {
@@ -336,11 +336,11 @@
           "applied": false
         },
         "buyback_yield": 0.015,
-        "beta": 2.202,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.0"
+        "beta": 2.211,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 117.85,
+      "iv_per_share": 117.84,
       "sheet_iv_per_share": 166.42,
       "note": "Q1 FY27 (May'26): rev +85% to $81.6B, DC +92%; $118B buyback authorized, div raised. Hypergrowth capped hard for Buffett conservatism; priced for perfection."
     },
@@ -349,7 +349,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
       "fcf_ps0": 5.6511,
       "growth_ps": [
@@ -369,14 +369,14 @@
         "curated_growth": 0.02,
         "analyst_guard": {
           "rev_fwd": 0.0639,
-          "earn_fwd": -0.298,
+          "earn_fwd": -0.2964,
           "signal_capped": 0.0479,
           "applied": false
         },
         "buyback_yield": 0.0,
-        "beta": 0.124,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.5"
+        "beta": 0.15,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.5"
       },
       "iv_per_share": 54.87,
       "sheet_iv_per_share": null,
@@ -387,7 +387,7 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "high",
       "fcf_ps0": 13.3761,
       "growth_ps": [
@@ -395,7 +395,7 @@
         0.0646,
         0.0476
       ],
-      "discount_rate": 0.1006,
+      "discount_rate": 0.0987,
       "terminal_growth": 0.025,
       "net_debt_ps": 41.6779,
       "inputs": {
@@ -412,11 +412,11 @@
           "applied": false
         },
         "buyback_yield": 0.03,
-        "beta": 1.089,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.0"
+        "beta": 1.052,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 245.55,
+      "iv_per_share": 253.58,
       "sheet_iv_per_share": 266.54,
       "note": "Q1'26: rev +6%, EPS +2% beat, FY26 EPS $10.87-11.17; buyback raised to $600M (~8% cap), 2.8% div raised. CEO transition; Berkshire EXITED. Gradual discretionary recovery."
     },
@@ -425,12 +425,12 @@
       "model_type": "earnings_multiple",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
       "normalized_eps": 9.3,
       "target_pe": 9.0,
       "net_cash_ps": 0.0,
-      "discount_rate_ref": 0.1121,
+      "discount_rate_ref": 0.1115,
       "iv_per_share": 83.7,
       "sheet_iv_per_share": null,
       "note": "Q1'26: EPS $2.27 (+20%, buyback-driven) beat, FY26 EPS guide $9.10-9.50; NEW $6.5B buyback (~25% of cap!) + 13% div hike; NCO improving to 5.42%. Cyclical consumer credit -> EPS x9 (banks: FCF N/A)."
@@ -440,9 +440,9 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "high",
-      "fcf_ps0": 7.643,
+      "fcf_ps0": 7.6369,
       "growth_ps": [
         0.066,
         0.0462,
@@ -450,26 +450,26 @@
       ],
       "discount_rate": 0.1,
       "terminal_growth": 0.0,
-      "net_debt_ps": 15.4669,
+      "net_debt_ps": 15.4546,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.093 x latest rev",
         "owner_earnings_total_reporting": 16.99,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 2223.1,
+        "shares_econ_m": 2224.9,
         "fcf_growth_y1_5": 0.03,
         "curated_growth": 0.03,
         "analyst_guard": {
-          "rev_fwd": 0.0417,
-          "earn_fwd": -0.1296,
-          "signal_capped": 0.0313,
+          "rev_fwd": 0.0413,
+          "earn_fwd": -0.1119,
+          "signal_capped": 0.031,
           "applied": false
         },
         "buyback_yield": 0.035,
-        "beta": 0.045,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.5"
+        "beta": 0.05,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.5"
       },
-      "iv_per_share": 110.07,
+      "iv_per_share": 109.98,
       "sheet_iv_per_share": 113.06,
       "note": "Q1'26: adj EPS $2.45 (+34%), production +4%; buyback DOUBLED to $1.5B/qtr (active), ~5% growing div. Most defensively attractive energy major; 0% terminal."
     },
@@ -478,9 +478,9 @@
       "model_type": "fcf_dcf",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
-      "fcf_ps0": 29.7811,
+      "fcf_ps0": 29.7758,
       "growth_ps": [
         0.0706,
         0.0569,
@@ -488,12 +488,12 @@
       ],
       "discount_rate": 0.09,
       "terminal_growth": 0.025,
-      "net_debt_ps": 51.4194,
+      "net_debt_ps": 51.4103,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.06 x latest rev",
         "owner_earnings_total_reporting": 27.04,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 908.0,
+        "shares_econ_m": 908.1,
         "fcf_growth_y1_5": 0.06,
         "curated_growth": 0.06,
         "analyst_guard": {
@@ -503,11 +503,11 @@
           "applied": false
         },
         "buyback_yield": 0.01,
-        "beta": 0.65,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk0.0"
+        "beta": 0.633,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 641.07,
+      "iv_per_share": 640.95,
       "sheet_iv_per_share": 621.36,
       "note": "Q1'26: rev +2%, adj EPS $7.23 beat, FY26 guide RAISED to adj >$18.25, MCR improving to 83.9%; ~$2.5B/yr buyback (<1%), 2.7% div. DOJ MA probes = overhang, recovery haircut."
     },
@@ -516,12 +516,12 @@
       "model_type": "earnings_multiple",
       "currency": "USD",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
       "normalized_eps": 4.5,
       "target_pe": 11.0,
       "net_cash_ps": 0.0,
-      "discount_rate_ref": 0.0961,
+      "discount_rate_ref": 0.095,
       "iv_per_share": 49.5,
       "sheet_iv_per_share": null,
       "note": "Q1'26: EPS $1.18 (+14.6%) beat, FY26 rev +4-6%, NIM recovery to ~3% by 2027; buyback doubled to $200M/qtr, 70-75% payout target, ~4% div. Quality super-regional -> EPS x11 (banks: FCF N/A)."
@@ -531,7 +531,7 @@
       "model_type": "none",
       "currency": "USD",
       "source": "n/a",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "n/a",
       "note": "S&P 500 ETF \u2014 price ~ NAV; no single-name DCF."
     },
@@ -540,7 +540,7 @@
       "model_type": "fcf_dcf",
       "currency": "GBp",
       "source": "created v2 (data-driven, Buffett-conservative)",
-      "as_of": "2026-07-02",
+      "as_of": "2026-07-06",
       "confidence": "med",
       "fcf_ps0": 54.5842,
       "growth_ps": [
@@ -550,7 +550,7 @@
       ],
       "discount_rate": 0.105,
       "terminal_growth": 0.025,
-      "net_debt_ps": -3230.6172,
+      "net_debt_ps": -496.4533,
       "inputs": {
         "owner_earnings_basis": "net income (latest FY; OCF float-inflated)",
         "owner_earnings_total_reporting": 0.54,
@@ -565,11 +565,11 @@
           "applied": false
         },
         "buyback_yield": 0.005,
-        "beta": 0.515,
-        "risk_free_15y_pct": 4.61,
-        "discount_components": "max(rf4.61+beta*ERP5.0, floor9.0) + risk1.5"
+        "beta": 0.517,
+        "risk_free_15y_pct": 4.608,
+        "discount_components": "max(rf4.608+beta*ERP5.0, floor9.0) + risk1.5"
       },
-      "iv_per_share": 4543.83,
+      "iv_per_share": 1809.66,
       "sheet_iv_per_share": null,
       "note": "FY26: underlying income \u00a31.6B +18%, cross-border volume \u00a3182B; active buyback. OCF is float-inflated so owner-earnings = net income. +1.5% discount for float-income rate-cut sensitivity. Price in pence."
     }
