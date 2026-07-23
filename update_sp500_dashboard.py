@@ -509,7 +509,7 @@ def fetch_single_ticker(ticker):
                 valuation_method = 'dcf'
                 iv = buffett_intrinsic_value(
                     fcf,
-                    rev_growth if rev_growth else 0.03,
+                    rev_growth if rev_growth is not None else 0.03,
                     liquid_assets=cash,
                     industry=industry,
                     sector=sector,
