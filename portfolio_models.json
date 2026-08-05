@@ -6,10 +6,10 @@
   "macro": {
     "risk_free_15y_pct": 4.756,
     "yield_curve_pct": {
-      "3mo": 3.7300000190734863,
-      "5yr": 4.340000152587891,
-      "10yr": 4.61899995803833,
-      "30yr": 5.166999816894531
+      "3mo": 3.7249999046325684,
+      "5yr": 4.324000358581543,
+      "10yr": 4.616999626159668,
+      "30yr": 5.174000263214111
     },
     "equity_risk_premium_pct": 5.0,
     "buffett_discount_floor_pct": 9.0
@@ -22,7 +22,7 @@
       "source": "created v2 (data-driven, Buffett-conservative)",
       "as_of": "2026-08-05",
       "confidence": "med",
-      "fcf_ps0": 1.3901,
+      "fcf_ps0": 1.3896,
       "growth_ps": [
         0.1016,
         0.0801,
@@ -34,7 +34,7 @@
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.067 x latest rev",
         "owner_earnings_total_reporting": 30.68,
-        "fx_reporting_to_listing": 1.1641,
+        "fx_reporting_to_listing": 1.1637,
         "shares_econ_m": 25693.6,
         "fcf_growth_y1_5": 0.08,
         "curated_growth": 0.08,
@@ -49,7 +49,7 @@
         "risk_free_15y_pct": 4.756,
         "discount_components": "max(rf4.756+beta*ERP5.0, floor9.0) + risk1.5"
       },
-      "iv_per_share": 36.29,
+      "iv_per_share": 36.28,
       "sheet_iv_per_share": 40.46,
       "note": "Q1'26: rev -10.9% (memory-chip cost shock), adj profit -43%; EV deliveries 80.9k (+6.6%) but EV segment still -RMB3.1B op loss. NEW: HK$20B buyback (reverses old 'no buyback'); no div. EV growth vs near-term margin fragility."
     },
@@ -83,7 +83,7 @@
       ],
       "discount_rate": 0.105,
       "terminal_growth": 0.03,
-      "net_debt_ps": -14.6432,
+      "net_debt_ps": -14.6433,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.118 x latest rev",
         "owner_earnings_total_reporting": 121.22,
@@ -313,7 +313,7 @@
       "source": "created v2 (data-driven, Buffett-conservative)",
       "as_of": "2026-08-05",
       "confidence": "med",
-      "fcf_ps0": 3.9728,
+      "fcf_ps0": 3.9716,
       "growth_ps": [
         0.1672,
         0.1261,
@@ -321,12 +321,12 @@
       ],
       "discount_rate": 0.1276,
       "terminal_growth": 0.03,
-      "net_debt_ps": -1.6662,
+      "net_debt_ps": -1.6657,
       "inputs": {
         "owner_earnings_basis": "median FCF margin 0.446 x latest rev",
         "owner_earnings_total_reporting": 96.23,
         "fx_reporting_to_listing": 1.0,
-        "shares_econ_m": 24221.0,
+        "shares_econ_m": 24228.6,
         "fcf_growth_y1_5": 0.15,
         "curated_growth": 0.15,
         "analyst_guard": {
@@ -340,7 +340,7 @@
         "risk_free_15y_pct": 4.756,
         "discount_components": "max(rf4.756+beta*ERP5.0, floor9.0) + risk0.0"
       },
-      "iv_per_share": 115.6,
+      "iv_per_share": 115.56,
       "sheet_iv_per_share": 166.42,
       "note": "Q1 FY27 (May'26): rev +85% to $81.6B, DC +92%; $118B buyback authorized, div raised. Hypergrowth capped hard for Buffett conservatism; priced for perfection."
     },
