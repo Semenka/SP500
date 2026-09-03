@@ -87,6 +87,23 @@ python3 scripts/run_update_agent.py --no-refresh             # re-render docs on
 
 Reuses the OpenClaw `default` bot token (read from `~/.openclaw/openclaw.json`); chat id `148594943`. Override with env `SP500_TELEGRAM_TOKEN` / `SP500_TELEGRAM_CHAT_ID`. Each run sends a summary + deep-value signals (names ≥ +`SP500_DISCOUNT_THRESHOLD`, default 30%, and BRK-held undervalued).
 
+## Cowork sync (daily operating OS)
+
+Every run mirrors its output into the Cowork **Portfolio** Google Sheet
+(`SP500_COWORK_SHEET_ID`, default `1S4b47B84Bt06PTOsnf3nZXwVIx9RFy9ppJQpje2I9fQ`)
+so Cowork sessions always see the latest state, alongside the Telegram digest:
+
+- **`SP500 Live IV`** — overwritten each run: one row per holding (as-of, session,
+  model, growth Y1-5, discount rate, price, IV/share, June sheet IV, upside %,
+  verdict, confidence, latest-earnings note).
+- **`SP500 Digest Log`** — one row appended per run (timestamp, session, BUY/FAIR/
+  overvalued counts, coverage, full plain-text digest) → a running daily log.
+
+Auth reuses the machine's Google OAuth token (`SP500_GOOGLE_CREDS_DIR`, default
+`~/.config/personal-doctor/gdrive/`, full `drive` scope; auto-refreshed). The
+step retries transient 5xx and is **fail-safe** — a sync failure is logged and
+never blocks the run, push, or Telegram. Skip with `--no-cowork`.
+
 ## Run-health log
 
 `docs/data/runs.csv` appends one row per run (elapsed, full/partial/no-data, IV & sector coverage). The dashboard header shows IV-coverage and overlay-coverage badges.

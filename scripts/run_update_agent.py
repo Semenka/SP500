@@ -33,9 +33,11 @@ import csv
 import datetime as dt
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -54,6 +56,17 @@ PORTFOLIO_CONFIG = REPO_ROOT / "portfolio.json"
 PORTFOLIO_JSON = DATA_DIR / "portfolio.json"
 PORTFOLIO_MODELS_FILE = REPO_ROOT / "portfolio_models.json"
 
+# Cowork sync: mirror every run's valuations + digest into the Cowork
+# "Portfolio" Google Sheet so Cowork sessions always see the latest state.
+# Reuses the machine's existing Google OAuth token (full `drive` scope, which
+# the Sheets API accepts). Override via env if the sheet or creds move.
+COWORK_SHEET_ID = os.environ.get(
+    "SP500_COWORK_SHEET_ID", "1S4b47B84Bt06PTOsnf3nZXwVIx9RFy9ppJQpje2I9fQ")
+GOOGLE_CREDS_DIR = Path(os.environ.get(
+    "SP500_GOOGLE_CREDS_DIR", str(Path.home() / ".config" / "personal-doctor" / "gdrive")))
+COWORK_TAB_LIVE = "SP500 Live IV"
+COWORK_TAB_LOG = "SP500 Digest Log"
+
 # Telegram (reuses the OpenClaw "default" bot). Override via env if desired.
 OPENCLAW_CONFIG = Path.home() / ".openclaw" / "openclaw.json"
 TELEGRAM_CHAT_ID = os.environ.get("SP500_TELEGRAM_CHAT_ID", "148594943")
@@ -66,11 +79,16 @@ sys.path.insert(0, str(REPO_ROOT))
 
 # ── Dependency check ─────────────────────────────────────────────────────────
 def ensure_deps():
-    required = ["jinja2"]
+    # import name -> pip package name
+    required = {
+        "jinja2": "jinja2",
+        "googleapiclient": "google-api-python-client",
+        "google.oauth2": "google-auth",
+    }
     missing = []
-    for pkg in required:
+    for mod, pkg in required.items():
         try:
-            __import__(pkg)
+            __import__(mod)
         except ImportError:
             missing.append(pkg)
     if missing:
@@ -658,12 +676,139 @@ def build_alert_text(report, rows, run_meta, with_news=True, portfolio_rows=None
     return "\n".join(lines)
 
 
+# ── Cowork sync (Google Sheets) ──────────────────────────────────────────────
+def _google_sheets_service():
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from googleapiclient.discovery import build
+
+    token = GOOGLE_CREDS_DIR / "token.json"
+    if not token.exists():
+        raise FileNotFoundError(f"Google OAuth token not found at {token}")
+    creds = Credentials.from_authorized_user_file(
+        str(token), ["https://www.googleapis.com/auth/drive"])
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        token.write_text(creds.to_json())
+    return build("sheets", "v4", credentials=creds, cache_discovery=False)
+
+
+def _sheets_call(fn, retries=(0, 5, 15, 30)):
+    """Execute a Sheets API request with backoff on transient 5xx errors."""
+    last = None
+    for wait in retries:
+        if wait:
+            time.sleep(wait)
+        try:
+            return fn().execute()
+        except Exception as e:  # HttpError 5xx / network blips
+            last = e
+            code = getattr(getattr(e, "resp", None), "status", None)
+            if code is not None and int(code) < 500:
+                raise
+    raise last
+
+
+def _ensure_tabs(svc, sid, names):
+    meta = _sheets_call(lambda: svc.spreadsheets().get(
+        spreadsheetId=sid, fields="sheets.properties.title"))
+    have = {s["properties"]["title"] for s in meta.get("sheets", [])}
+    reqs = [{"addSheet": {"properties": {"title": n, "gridProperties": {"frozenRowCount": 1}}}}
+            for n in names if n not in have]
+    if reqs:
+        _sheets_call(lambda: svc.spreadsheets().batchUpdate(
+            spreadsheetId=sid, body={"requests": reqs}))
+
+
+def _strip_html(s):
+    s = re.sub(r"<[^>]+>", "", s or "")
+    return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+
+
+def _verdict(d):
+    if d is None:
+        return "—"
+    return "BUY" if d > 0.25 else "FAIR" if d > -0.10 else "overvalued"
+
+
+def sync_cowork(portfolio_rows, digest_text, run_meta, report):
+    """Mirror this run into the Cowork Portfolio sheet:
+      - '<COWORK_TAB_LIVE>'  : overwritten each run with the full valuation table
+      - '<COWORK_TAB_LOG>'   : one row appended per run (running daily log)
+    Fail-safe: any error is logged and never breaks the run."""
+    try:
+        svc = _google_sheets_service()
+        sid = COWORK_SHEET_ID
+        _ensure_tabs(svc, sid, [COWORK_TAB_LIVE, COWORK_TAB_LOG])
+
+        as_of = run_meta["timestamp_et"]
+        session = run_meta["session"]
+        header = ["As of (ET)", "Session", "Ticker", "Holding", "Model", "Growth Y1-5",
+                  "Discount rate", "Price", "IV / share", "Sheet IV (June)", "Upside %",
+                  "Verdict", "Confidence", "Latest-earnings note"]
+        rows = []
+        for r in portfolio_rows:
+            vm, mt = r.get("valuation_method"), r.get("model_type")
+            model = ("ETF" if vm == "etf" else
+                     "Model · EPS×PE" if mt == "earnings_multiple" else
+                     "Model · net-cash" if mt == "netcash" else
+                     "Model · DCF" if vm == "model" else (vm or "—"))
+            d = r.get("discount")
+            g = r.get("model_growth_y1_5")
+            dr = r.get("model_discount_rate")
+            rows.append([
+                as_of, session, r.get("ticker"), r.get("portfolio_display") or r.get("company"),
+                model,
+                (round(g * 100, 2) if g is not None else ""),
+                (round(dr * 100, 2) if dr is not None else ""),
+                r.get("price") if r.get("price") is not None else "",
+                (round(r["iv_per_share"], 2) if r.get("iv_per_share") is not None else ""),
+                r.get("sheet_iv_per_share") or "",
+                (round(d * 100, 1) if d is not None else ""),
+                _verdict(d), r.get("model_confidence") or "", r.get("model_note") or "",
+            ])
+        _sheets_call(lambda: svc.spreadsheets().values().clear(
+            spreadsheetId=sid, range=f"'{COWORK_TAB_LIVE}'!A:Z"))
+        _sheets_call(lambda: svc.spreadsheets().values().update(
+            spreadsheetId=sid, range=f"'{COWORK_TAB_LIVE}'!A1",
+            valueInputOption="RAW", body={"values": [header] + rows}))
+
+        # Digest log: header once, then append one row per run.
+        log_header = ["Timestamp (ET)", "Session", "# BUY", "# FAIR", "# overvalued",
+                      "IV coverage %", "Overlay coverage %", "Digest"]
+        first = _sheets_call(lambda: svc.spreadsheets().values().get(
+            spreadsheetId=sid, range=f"'{COWORK_TAB_LOG}'!A1:A1"))
+        if not first.get("values"):
+            _sheets_call(lambda: svc.spreadsheets().values().update(
+                spreadsheetId=sid, range=f"'{COWORK_TAB_LOG}'!A1",
+                valueInputOption="RAW", body={"values": [log_header]}))
+        verdicts = [_verdict(r.get("discount")) for r in portfolio_rows]
+        log_row = [
+            as_of, session,
+            verdicts.count("BUY"), verdicts.count("FAIR"), verdicts.count("overvalued"),
+            round((report.get("iv_coverage") or 0) * 100, 1),
+            round((report.get("sector_coverage") or 0) * 100, 1),
+            _strip_html(digest_text),
+        ]
+        _sheets_call(lambda: svc.spreadsheets().values().append(
+            spreadsheetId=sid, range=f"'{COWORK_TAB_LOG}'!A1",
+            valueInputOption="RAW", insertDataOption="INSERT_ROWS",
+            body={"values": [log_row]}))
+        print(f"cowork: synced {len(rows)} holdings to '{COWORK_TAB_LIVE}' + 1 row to '{COWORK_TAB_LOG}'")
+        return True
+    except Exception as e:
+        print(f"cowork: sync failed (non-fatal): {type(e).__name__}: {str(e)[:200]}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--session", choices=["pre-open", "pre-close", "manual"], default="manual")
     parser.add_argument("--force", action="store_true", help="bypass NYSE trading-day check")
     parser.add_argument("--no-push", action="store_true", help="skip git commit/push")
     parser.add_argument("--no-telegram", action="store_true", help="skip Telegram alert")
+    parser.add_argument("--no-cowork", action="store_true",
+                        help="skip syncing valuations + digest to the Cowork Google Sheet")
     parser.add_argument("--no-refresh", action="store_true",
                         help="re-render dashboard only, do not call yfinance (debug)")
     args = parser.parse_args()
@@ -737,9 +882,14 @@ def _run(args):
 
     git_commit_and_push(args.session, run_meta["timestamp_et"], push=not args.no_push)
 
-    # P3: Telegram alert — leads with the portfolio, then market-wide signals.
-    if not args.no_telegram and not args.no_refresh:
-        send_telegram(build_alert_text(report, rows, run_meta, portfolio_rows=portfolio_rows))
+    # P3: digest — built once, delivered to Telegram and mirrored into the
+    # Cowork Portfolio sheet (daily operating OS: both channels every run).
+    if not args.no_refresh:
+        digest_text = build_alert_text(report, rows, run_meta, portfolio_rows=portfolio_rows)
+        if not args.no_telegram:
+            send_telegram(digest_text)
+        if not args.no_cowork:
+            sync_cowork(portfolio_rows, digest_text, run_meta, report)
 
 
 if __name__ == "__main__":
