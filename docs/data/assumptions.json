@@ -185,12 +185,12 @@
     "margin_of_safety": "Buffett's bargain margin \u2014 buy at a discount to fair value. 25% base; the geopolitical overlay adds more in stressed regimes."
   },
   "macro_curve": {
-    "risk_free_15y_pct": 5.399,
+    "risk_free_15y_pct": 5.368,
     "yield_curve_pct": {
-      "3mo": 4.01800012588501,
-      "5yr": 5.065999984741211,
-      "10yr": 5.310999870300293,
-      "30yr": 5.664999961853027
+      "3mo": 4.034999847412109,
+      "5yr": 5.0229997634887695,
+      "10yr": 5.275000095367432,
+      "30yr": 5.645999908447266
     },
     "equity_risk_premium_pct": 5.0,
     "buffett_discount_floor_pct": 9.0
